@@ -1,0 +1,240 @@
+<title>Z-2099 Cámara</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#141614;--surface:#1d201c;--surface2:#262a25;--ink:#e6e3da;--muted:#9aa096;--line:#353a34;--accent:#c9553d;--accent-ink:#1a0c09;--olive:#9db060;--hazard:#e0b43a;--focus:#8fb3ec;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:16px;line-height:1.45;}
+.hazard{height:8px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 16px,#111 16px 32px);}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+h1{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:clamp(40px,6vw,64px);line-height:.95;text-transform:uppercase;margin:6px 0 10px;}
+h1 span{color:var(--accent);}
+.lead{max-width:68ch;color:var(--muted);margin:0 0 18px;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tabs button{font:inherit;font-weight:600;font-size:15px;padding:10px 14px;background:var(--surface);color:var(--ink);border:1px solid var(--line);cursor:pointer;}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.tabs button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+.tabs .rec{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;margin-left:6px;opacity:.8;}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start;}
+@media (max-width:860px){.stage{grid-template-columns:1fr}}
+.viewport{position:relative;background:var(--surface);border:1px solid var(--line);overflow:hidden;touch-action:none;}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/10;cursor:grab;}
+canvas.active{cursor:grabbing}
+.hud{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap;}
+.hud button{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;background:rgba(20,22,20,.75);color:var(--ink);border:1px solid var(--line);cursor:pointer;backdrop-filter:blur(3px);}
+.hud button:focus-visible{outline:2px solid var(--focus);}
+.hint{position:absolute;right:10px;top:10px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);background:rgba(20,22,20,.7);padding:4px 8px;max-width:60%;text-align:right;}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px 18px;}
+.panel h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-size:30px;line-height:1;text-transform:uppercase;margin:0 0 4px;}
+.panel .ref{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+.panel p{margin:0 0 12px;color:var(--ink);font-size:15px;}
+.metric{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;font-size:13px;color:var(--muted);padding:5px 0;border-top:1px solid var(--line);}
+.metric .bar{height:8px;background:var(--surface2);display:flex;gap:2px;}
+.metric .bar i{flex:1;background:var(--line);}
+.metric .bar i.on{background:var(--olive);}
+.metric.bad .bar i.on{background:var(--accent);}
+.verdict{margin-top:12px;padding:10px 12px;border-left:3px solid var(--hazard);background:var(--surface2);font-size:14px;}
+.verdict b{font-weight:600;}
+.nota{margin-top:18px;max-width:78ch;color:var(--muted);font-size:14px;}
+.nota b{color:var(--ink);font-weight:600;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="hazard"></div>
+<div class="wrap">
+<div class="eyebrow">Z-2099 · comparador de cámara · mismo tablero, cuatro formas de mirarlo</div>
+<h1>2,5D o <span>3D</span></h1>
+<p class="lead">Las cuatro vistas usan la misma escena tridimensional: un tablero octogonal de casillas hexagonales de tamaño medio, ruinas, un refugio en el centro, 10 supervivientes y una treintena de caminantes en los bordes. Lo único que cambia es la cámara. Arrastra para mover la cámara y usa la rueda o el gesto de pinza para el zoom.</p>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="stage">
+  <div class="viewport">
+    <canvas id="c" width="1120" height="700" aria-label="Escena 3D del tablero"></canvas>
+    <div class="hint" id="hint"></div>
+    <div class="hud" id="hud"></div>
+  </div>
+  <aside class="panel" id="panel"></aside>
+</div>
+<p class="nota"><b>Lo que llamas 2,5D «rollo God of War»</b> es una cámara fija sobre una escena 3D: lo que hacía la saga clásica. <i>God of War</i> de 2018 es la vista 4, tercera persona libre, y sirve para un personaje, no para diez fichas y un tablero. La recomendación es la vista 1: modelos 3D reales, cámara isométrica fija con zoom y giro del tablero en cuatro pasos. Da la lectura de un juego de mesa, deja precalcular la luz para que el fotorealismo funcione en móviles de gama media y hace que cartas y fichas midan siempre lo mismo en pantalla.</p>
+</div>
+
+<script>
+/* ---------- escena ---------- */
+const R=1; const W=Math.sqrt(3)*R; // hex pointy-top
+const tiles=[], props=[], tokens=[];
+function hexCorners(cx,cz,r){const p=[];for(let k=0;k<6;k++){const a=Math.PI/6+k*Math.PI/3;p.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}return p;}
+let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+const RAD=6;
+for(let row=-8;row<=8;row++)for(let col=-9;col<=9;col++){
+  const x=col*W+(row%2?W/2:0), z=row*R*1.5;
+  const ax=Math.abs(x),az=Math.abs(z),c=RAD*Math.cos(Math.PI/8),d=RAD*(Math.cos(Math.PI/8)+Math.sin(Math.PI/8));
+  if(!(ax<=c&&az<=c&&ax+az<=d)) continue;
+  const dist=Math.hypot(x,z); const road=Math.abs(x-z*0.6)<0.9||Math.abs(z)<0.7;
+  let kind='ground'; if(road) kind='road'; if(dist<0.6) kind='refuge';
+  const h=kind==='road'?0.08:0.12+rnd()*0.02;
+  tiles.push({x,z,h,kind,dist,shade:rnd()});
+  if(kind==='ground'&&dist>1.6&&rnd()<0.32){ const bh=0.6+rnd()*1.6; props.push({type:'ruin',x,z,h:h+bh,base:h,r:0.62,sides:rnd()<.5?4:6,rot:rnd()*Math.PI,rust:rnd()<.35}); }
+  else if(kind==='ground'&&rnd()<0.12){ props.push({type:'tree',x,z,base:h,h:h+0.9+rnd()*0.5}); }
+}
+// refuge building
+props.push({type:'refuge',x:0,z:0,base:0.12,h:1.0,r:0.7,sides:6,rot:0});
+// survivors
+const SURV=['#5f8fb4','#c9a24a','#b4553f','#7aa06a','#9a7fb8','#d0865a','#6fb1a6','#c56d8a','#a9a06e','#8b96c5'];
+const start=[[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1],[2,0],[-2,0],[1,1]];
+start.forEach((s,i)=>{const row=s[1],col=s[0];const x=col*W+(row%2?W/2:0)+(rnd()-.5)*.3, z=row*R*1.5+(rnd()-.5)*.3;tokens.push({type:'surv',x,z,color:SURV[i],base:0.14});});
+// zombies at edges + a horde
+for(let i=0;i<34;i++){const a=rnd()*Math.PI*2, rr=3.6+rnd()*2.2; const x=Math.cos(a)*rr, z=Math.sin(a)*rr; if(Math.abs(x)>5.4||Math.abs(z)>5.4) continue; tokens.push({type:'zomb',x,z,base:0.14,lean:rnd()*0.5});}
+for(let i=0;i<9;i++){tokens.push({type:'zomb',x:3.2+(rnd()-.5)*1.2,z:-2.6+(rnd()-.5)*1.2,base:0.14,lean:rnd()*0.5});}
+
+/* ---------- cámara ---------- */
+const cam={az:Math.PI/4,el:35.264*Math.PI/180,dist:16,ortho:true,zoom:1,fov:50,target:[0,0,0],follow:null,minEl:0.25,maxEl:1.45};
+const MODES=[
+ {id:'iso',tab:'1 · 2,5D isométrica fija',rec:true,title:'2,5D isométrica fija',ref:'God of War clásico · Diablo · Baldur\'s Gate 3 (vista táctica)',
+  desc:'Cámara ortográfica a 35° sobre modelos 3D reales. El tablero entero cabe en pantalla, las fichas miden siempre lo mismo y el jugador solo tiene dos controles: zoom y giro en cuatro pasos de 90°.',
+  set(){cam.ortho=true;cam.az=Math.PI/4;cam.el=35.264*Math.PI/180;cam.zoom=1;cam.follow=null;cam.target=[0,0,0];},
+  hint:'Arrastra: desplazar · Rueda o pinza: zoom · Botones: girar 90°',
+  hud:[['⟲ Girar',()=>{animateAz(cam.az+Math.PI/2)}],['Girar ⟳',()=>{animateAz(cam.az-Math.PI/2)}],['Centrar',()=>{cam.target=[0,0,0];cam.zoom=1;draw()}]],
+  m:{leg:5,arte:2,rend:5,mesa:5},
+  verdict:'<b>Recomendada.</b> Es la única vista en la que 10 jugadores y una horda se leen de un vistazo en un móvil de 6 pulgadas. La luz y las sombras se precalculan, así que el fotorealismo que elegiste corre en gama media.'},
+ {id:'free',tab:'2 · 3D cámara libre',title:'3D con cámara libre',ref:'Tabletop Simulator · Gloomhaven digital',
+  desc:'Perspectiva real y órbita libre con el dedo. Inmersivo y espectacular en capturas, pero cada jugador ve el tablero desde un ángulo distinto, las fichas lejanas se hacen diminutas y el móvil necesita gestos de cámara además de los del juego.',
+  set(){cam.ortho=false;cam.az=Math.PI/4+0.4;cam.el=0.62;cam.dist=15;cam.fov=50;cam.follow=null;cam.target=[0,0,0];},
+  hint:'Arrastra: orbitar · Rueda o pinza: acercar',
+  hud:[['Reiniciar',()=>{MODES[1].set();draw()}]],
+  m:{leg:3,arte:5,rend:3,mesa:3},
+  verdict:'Todo el arte debe verse bien desde cualquier ángulo y a cualquier distancia: entre dos y tres veces más coste de modelado y texturas. Tiene sentido como <b>modo espectador</b> en la pantalla compartida, no como vista de juego.'},
+ {id:'top',tab:'3 · Cenital con relieve',title:'Cenital con relieve',ref:'Mapas de juegos de mesa físicos · Into the Breach',
+  desc:'Vista desde arriba casi vertical, con una ligera inclinación para que edificios y fichas muestren volumen. Máxima legibilidad de distancias y casillas. Pierde parte del dramatismo del atardecer y de las siluetas.',
+  set(){cam.ortho=true;cam.az=0;cam.el=1.32;cam.zoom=1.05;cam.follow=null;cam.target=[0,0,0];},
+  hint:'Arrastra: desplazar · Rueda o pinza: zoom',
+  hud:[['Centrar',()=>{cam.target=[0,0,0];cam.zoom=1.05;draw()}]],
+  m:{leg:5,arte:2,rend:5,mesa:4},
+  verdict:'Muy buena candidata para la <b>pantalla compartida de la mesa</b>, donde la TV se mira desde todos los lados. En el móvil se queda plana.'},
+ {id:'tps',tab:'4 · Tercera persona',title:'Tercera persona',ref:'God of War (2018) · The Last of Us',
+  desc:'La cámara sigue a tu superviviente a la altura del hombro. Es la vista más cinematográfica y la que menos sirve para un juego de mesa: no ves el tablero, no ves a los otros nueve jugadores, no ves la horda hasta que la tienes encima.',
+  set(){cam.ortho=false;cam.az=Math.PI/4;cam.el=0.36;cam.dist=5.2;cam.fov=60;cam.follow=0;},
+  hint:'Arrastra: mirar alrededor · Rueda: acercar',
+  hud:[['Siguiente superviviente',()=>{cam.follow=(cam.follow+1)%10;draw()}]],
+  m:{leg:1,arte:5,rend:2,mesa:1},
+  verdict:'Descartada como vista de juego. Puede quedar como <b>cinemática de dos segundos</b> al resolver un combate o un mordisco, y volver a la isométrica.'}
+];
+let mode=MODES[0];
+
+/* ---------- render ---------- */
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+const LIGHT=norm([-0.5,0.8,0.35]);
+function norm(v){const l=Math.hypot(...v)||1;return v.map(a=>a/l);}
+function view(p){ // world -> camera space
+  let [x,y,z]=p; const t=cam.target; x-=t[0];y-=t[1];z-=t[2];
+  const ca=Math.cos(cam.az),sa=Math.sin(cam.az); let x1=x*ca-z*sa, z1=x*sa+z*ca;
+  const ce=Math.cos(cam.el),se=Math.sin(cam.el); let y2=y*ce+z1*se, z2=-y*se+z1*ce;
+  return [x1,y2,z2+cam.dist];
+}
+function proj(v){const w=cv.width,h=cv.height;
+  if(cam.ortho){const s=h/9.5*cam.zoom;return [w/2+v[0]*s,h/2-v[1]*s];}
+  const f=(h/2)/Math.tan(cam.fov*Math.PI/360); const z=Math.max(v[2],0.05); return [w/2+v[0]*f/z,h/2-v[1]*f/z];
+}
+function shade(hex,k,fog){ // hex color, brightness k, fog 0..1
+  const n=parseInt(hex.slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r*=k;g*=k;b*=k; const F=[22,25,22];
+  r=r*(1-fog)+F[0]*fog; g=g*(1-fog)+F[1]*fog; b=b*(1-fog)+F[2]*fog;
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+const prims=[];
+function prism(cx,cz,base,top,r,sides,rot,color,opts={}){
+  const ring=[];for(let k=0;k<sides;k++){const a=rot+k*Math.PI*2/sides;ring.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}
+  const vt=ring.map(p=>view([p[0],top,p[1]])), vb=ring.map(p=>view([p[0],base,p[1]]));
+  const centerDepth=view([cx,(base+top)/2,cz])[2];
+  const faces=[];
+  for(let k=0;k<sides;k++){const k2=(k+1)%sides; const mx=(ring[k][0]+ring[k2][0])/2-cx, mz=(ring[k][1]+ring[k2][1])/2-cz; const n=norm([mx,0,mz]);
+    const lit=0.55+0.45*Math.max(0,n[0]*LIGHT[0]+n[2]*LIGHT[2]);
+    faces.push({pts:[vb[k],vb[k2],vt[k2],vt[k]],k:lit*0.85,depth:(vb[k][2]+vb[k2][2]+vt[k][2]+vt[k2][2])/4,side:true});}
+  faces.push({pts:vt,k:0.55+0.45*LIGHT[1],depth:vt.reduce((s,p)=>s+p[2],0)/sides-0.001,top:true});
+  prims.push({depth:centerDepth,faces,color,opts});
+}
+function drawFaces(pr){
+  // sort faces back to front, skip backfacing sides
+  pr.faces.sort((a,b)=>b.depth-a.depth);
+  const fogK=Math.min(1,Math.max(0,(pr.depth-cam.dist*0.6)/(cam.dist*1.4)))*(cam.ortho?0.35:0.7);
+  for(const f of pr.faces){
+    if(!cam.ortho&&f.pts.some(v=>v[2]<0.3)) continue;
+    const P=f.pts.map(proj);
+    if(f.side){let area=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];area+=a[0]*b[1]-b[0]*a[1];} if(area>0) continue;}
+    ctx.beginPath();P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();
+    ctx.fillStyle=shade(pr.color,f.k*(pr.opts.k||1),fogK);ctx.fill();
+    if(pr.opts.edge&&f.top){ctx.strokeStyle=shade(pr.opts.edge,1,fogK);ctx.lineWidth=cam.ortho?1.2*cam.zoom:1;ctx.stroke();}
+  }
+}
+function sky(){
+  const g=ctx.createLinearGradient(0,0,0,cv.height);
+  g.addColorStop(0,'#2b2f29');g.addColorStop(0.45,'#3b3a30');g.addColorStop(0.62,'#6a4a33');g.addColorStop(0.75,'#1a1d1a');g.addColorStop(1,'#111311');
+  ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height);
+  // low sun
+  const sx=cv.width*0.72, sy=cv.height*(cam.ortho?0.2:0.36);
+  const rg=ctx.createRadialGradient(sx,sy,4,sx,sy,cv.width*0.35); rg.addColorStop(0,'rgba(255,190,110,.45)');rg.addColorStop(1,'rgba(255,190,110,0)');
+  ctx.fillStyle=rg;ctx.fillRect(0,0,cv.width,cv.height);
+}
+function draw(){
+  if(cam.follow!=null){const t=tokens[cam.follow];cam.target=[t.x,0.5,t.z];}
+  ctx.clearRect(0,0,cv.width,cv.height); sky();
+  prims.length=0;
+  const TILE={ground:'#5a6350',road:'#3c3e3a',refuge:'#6b5a43'};
+  for(const t of tiles){const c=t.kind==='ground'?shadeHex('#5a6350',0.9+t.shade*0.2):TILE[t.kind]; prism(t.x,t.z,-0.1,t.h,R*0.985,6,Math.PI/6,c,{edge:'#2a2e28'});}
+  for(const p of props){
+    if(p.type==='ruin'){prism(p.x,p.z,p.base,p.h,p.r,p.sides,p.rot,p.rust?'#6e4b32':'#625a4d');}
+    else if(p.type==='tree'){prism(p.x,p.z,p.base,p.h-0.4,0.06,5,0,'#3a2e22');prism(p.x,p.z,p.h-0.55,p.h,0.32,7,0.3,'#3f4a2c');}
+    else if(p.type==='refuge'){prism(p.x,p.z,p.base,p.h,p.r,6,Math.PI/6,'#7a6a52',{edge:'#3a2f22'});prism(p.x,p.z,p.h,p.h+0.35,0.5,6,Math.PI/6,'#7a2a1e');}
+  }
+  tokens.forEach((t,i)=>{
+    if(t.type==='surv'){ if(cam.follow===i) return; prism(t.x,t.z,t.base,t.base+0.55,0.2,10,0,t.color);prism(t.x,t.z,t.base+0.55,t.base+0.72,0.11,8,0,'#d8b79a'); }
+    else { prism(t.x,t.z,t.base,t.base+0.5,0.17,8,t.lean,'#4f5a3a',{k:0.9});prism(t.x+t.lean*0.08,t.z,t.base+0.5,t.base+0.64,0.1,8,0,'#8a9a7a'); }
+  });
+  prims.sort((a,b)=>b.depth-a.depth);
+  for(const p of prims) drawFaces(p);
+  if(cam.follow!=null){ // grain vignette for cinematic
+    const vg=ctx.createRadialGradient(cv.width/2,cv.height/2,cv.height*0.35,cv.width/2,cv.height/2,cv.height*0.9);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.55)');ctx.fillStyle=vg;ctx.fillRect(0,0,cv.width,cv.height);
+  }
+  // labels of survivors for legibility comparison
+  ctx.font='600 13px "IBM Plex Mono",monospace';ctx.textAlign='center';
+  tokens.forEach((t,i)=>{ if(t.type!=='surv'||cam.follow===i) return; const v=view([t.x,t.base+1.0,t.z]); if(v[2]<0.1) return; const p=proj(v); const s=cam.ortho?cam.zoom:Math.min(1.6,6/v[2]); if(s<0.35) return;
+    ctx.fillStyle='rgba(20,22,20,.7)';const w=26*s;ctx.fillRect(p[0]-w/2,p[1]-9*s,w,14*s);ctx.fillStyle='#e6e3da';ctx.font=`600 ${Math.max(8,11*s)}px "IBM Plex Mono",monospace`;ctx.fillText('J'+(i+1),p[0],p[1]+2*s);});
+}
+function shadeHex(hex,k){const n=parseInt(hex.slice(1),16);const r=Math.min(255,((n>>16)&255)*k)|0,g=Math.min(255,((n>>8)&255)*k)|0,b=Math.min(255,(n&255)*k)|0;return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+
+/* ---------- interacción ---------- */
+let drag=null;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,id:e.pointerId};cv.setPointerCapture(e.pointerId);cv.classList.add('active');});
+cv.addEventListener('pointerup',()=>{drag=null;cv.classList.remove('active');});
+cv.addEventListener('pointercancel',()=>{drag=null;cv.classList.remove('active');});
+cv.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX;drag.y=e.clientY;
+  if(mode.id==='free'){cam.az-=dx*0.008;cam.el=Math.min(cam.maxEl,Math.max(cam.minEl,cam.el+dy*0.006));}
+  else if(mode.id==='tps'){cam.az-=dx*0.008;cam.el=Math.min(0.9,Math.max(0.05,cam.el+dy*0.004));}
+  else { // pan in board plane
+    const s=cv.height/9.5*cam.zoom; const scale=cv.width/cv.getBoundingClientRect().width; const ux=dx*scale/s, uy=dy*scale/s;
+    const ca=Math.cos(cam.az),sa=Math.sin(cam.az); const se=Math.sin(cam.el)||1;
+    cam.target[0]-=ux*ca-(uy/se)*sa; cam.target[2]-=-ux*sa-(uy/se)*ca;
+  }
+  draw();
+});
+cv.addEventListener('wheel',e=>{e.preventDefault(); const k=e.deltaY>0?1.1:0.9; if(cam.ortho){cam.zoom=Math.min(3,Math.max(0.5,cam.zoom/k));} else {cam.dist=Math.min(40,Math.max(mode.id==='tps'?1.5:4,cam.dist*k));} draw();},{passive:false});
+// pinch
+let pinch=null;
+cv.addEventListener('touchstart',e=>{if(e.touches.length===2){pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}},{passive:true});
+cv.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);const k=pinch/d;pinch=d;if(cam.ortho)cam.zoom=Math.min(3,Math.max(0.5,cam.zoom/k));else cam.dist=Math.min(40,Math.max(1.5,cam.dist*k));drag=null;draw();}},{passive:true});
+cv.addEventListener('touchend',()=>{pinch=null;});
+let anim=null;
+function animateAz(to){ if(anim) cancelAnimationFrame(anim); const from=cam.az, t0=performance.now(); const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){cam.az=to;draw();return;}
+  const step=now=>{const k=Math.min(1,(now-t0)/320); const e=1-Math.pow(1-k,3); cam.az=from+(to-from)*e; draw(); if(k<1) anim=requestAnimationFrame(step);}; anim=requestAnimationFrame(step);}
+
+/* ---------- UI ---------- */
+const tabs=document.getElementById('tabs'), panel=document.getElementById('panel'), hud=document.getElementById('hud'), hint=document.getElementById('hint');
+MODES.forEach(m=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.innerHTML=m.tab+(m.rec?'<span class="rec">RECOMENDADA</span>':'');b.addEventListener('click',()=>select(m));m.btn=b;tabs.appendChild(b);});
+const METRICS=[['leg','Legibilidad con 10 fichas'],['arte','Coste de arte',true],['rend','Coste de rendimiento móvil',true],['mesa','Sensación de juego de mesa']];
+function select(m){mode=m;m.set();MODES.forEach(x=>x.btn.setAttribute('aria-pressed',x===m));
+  panel.innerHTML=`<h2>${m.title}</h2><div class="ref">${m.ref}</div><p>${m.desc}</p>`+METRICS.map(([k,l,bad])=>{const v=bad?6-m.m[k]:m.m[k];const shown=bad?m.m[k]:m.m[k];return `<div class="metric${bad&&m.m[k]>=4?' bad':''}"><span>${l}</span><span class="bar" aria-label="${shown} de 5">${[1,2,3,4,5].map(i=>`<i class="${i<=shown?'on':''}"></i>`).join('')}</span></div>`}).join('')+`<div class="verdict">${m.verdict}</div>`;
+  hud.innerHTML='';m.hud.forEach(([t,f])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.addEventListener('click',f);hud.appendChild(b);});
+  hint.textContent=m.hint; draw();
+}
+select(MODES[0]);
+</script>
