@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Special+Elite&family=Source+Sans+3:wght@400;600&display=swap');
+body{margin:0;background:#141614;color:#e6e3da;font-family:"Source Sans 3","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
+a{color:#e0b43a}a:hover{color:#c9553d}
+.phone{width:390px;height:844px;position:relative;overflow:hidden;background:#141614;display:flex;flex-direction:column}
+.display{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+.mono{font-family:"Special Elite","Courier New",monospace}
+.hazard{height:6px;background:repeating-linear-gradient(-45deg,#e0b43a 0 14px,#111 14px 28px)}
+.tag{font-family:"Special Elite","Courier New",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border:1px solid #3a3f3a;color:#9aa096}
+.btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;background:#c9553d;color:#1a0c09;font-weight:600;font-size:16px;border-radius:2px}
+.btn.ghost{background:transparent;color:#e6e3da;border:1px solid #3a3f3a}
+.sello{position:absolute;font-family:"Special Elite","Courier New",monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#c9553d;border:2px solid #c9553d;padding:4px 10px;transform:rotate(-8deg);opacity:.85;mix-blend-mode:multiply}
+.papel{background:#e9e2cf;color:#2a2622;background-image:linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:100% 26px}
+.grano{position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(rgba(255,255,255,.35) .6px,transparent .7px);background-size:3px 3px;mix-blend-mode:overlay}
+
+
+  </style>
+</helmet>
+<div class="phone">
+<div class="hazard"></div>
+<div style="padding:26px 22px 10px;display:flex;flex-direction:column;gap:6px">
+  <div class="tag" style="align-self:flex-start;border-color:#c9553d;color:#c9553d">Protocolo de cuarentena</div>
+  <div class="display" style="font-size:72px;line-height:.9;color:#e6e3da">Z-<span style="color:#c9553d">2099</span></div>
+  <div style="color:#9aa096">Sala de partida. Comparte el código o enséñalo en la mesa.</div>
+</div>
+<div style="margin:6px 22px;padding:16px 18px;background:#1d201c;border:1px solid #2c302c;display:flex;align-items:center;justify-content:space-between">
+  <div><div class="mono" style="font-size:11px;color:#9aa096;letter-spacing:.14em;text-transform:uppercase">Código de sala</div><div class="display" style="font-size:52px;line-height:1;letter-spacing:.12em;color:#e0b43a">KRMA</div></div>
+  <div style="width:84px;height:84px;background:#e6e3da;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;padding:6px"><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i><i style="display:block;background:transparent"></i><i style="display:block;background:#151714"></i></div>
+</div>
+<div style="padding:14px 22px 6px;display:flex;align-items:baseline;justify-content:space-between"><div class="mono" style="font-size:11px;color:#9aa096;letter-spacing:.14em;text-transform:uppercase">Supervivientes · 6 de 10</div><div style="font-size:12px;color:#9db060">3 en la misma wifi</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 22px">
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #5f8fb4"><div style="width:34px;height:34px;border-radius:50%;background:#5f8fb4;flex:none"></div><div style="flex:1"><div style="font-weight:600">Beslan</div><div style="font-size:12px;color:#9aa096">Anfitrión · Elías Vega</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #c9a24a"><div style="width:34px;height:34px;border-radius:50%;background:#c9a24a;flex:none"></div><div style="flex:1"><div style="font-weight:600">Marta</div><div style="font-size:12px;color:#9aa096">Sunja Park</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #b4553f"><div style="width:34px;height:34px;border-radius:50%;background:#b4553f;flex:none"></div><div style="flex:1"><div style="font-weight:600">Iker</div><div style="font-size:12px;color:#9aa096">Eligiendo personaje…</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #7aa06a"><div style="width:34px;height:34px;border-radius:50%;background:#7aa06a;flex:none"></div><div style="flex:1"><div style="font-weight:600">Nora</div><div style="font-size:12px;color:#9aa096">Tomás Iriarte</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #9a7fb8"><div style="width:34px;height:34px;border-radius:50%;background:#9a7fb8;flex:none"></div><div style="flex:1"><div style="font-weight:600">Dani</div><div style="font-size:12px;color:#9aa096">Kenji Ōta</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1d201c;border-left:3px solid #d0865a"><div style="width:34px;height:34px;border-radius:50%;background:#d0865a;flex:none"></div><div style="flex:1"><div style="font-weight:600">Lucía</div><div style="font-size:12px;color:#9aa096">Conectando…</div></div></div>
+</div>
+<div style="margin:14px 22px 0;padding:12px 14px;background:#1d201c;border:1px dashed #3a3f3a;display:flex;align-items:center;gap:12px;color:#9aa096"><span style="display:flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18v10H3z"/><path d="M8 20h8M12 15v5"/></svg></span><div style="flex:1;font-size:13px">Pantalla compartida: abre <b style="color:#e6e3da">z2099.app/mesa</b> en la TV y escribe el código.</div></div>
+<div style="margin-top:auto;padding:14px 22px 22px;display:flex;flex-direction:column;gap:10px">
+  <div style="display:flex;justify-content:space-between;font-size:13px;color:#9aa096"><span>Misión</span><b style="color:#e6e3da">Al azar · contagio según carta</b></div>
+  <div class="btn" style="min-height:54px">Repartir personajes</div>
+</div>
+</div>
+</x-dc>
+</body>
+</html>

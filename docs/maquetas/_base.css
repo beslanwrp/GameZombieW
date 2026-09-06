@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Special+Elite&family=Source+Sans+3:wght@400;600&display=swap');
+body{margin:0;background:#141614;color:#e6e3da;font-family:"Source Sans 3","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
+a{color:#e0b43a}a:hover{color:#c9553d}
+.phone{width:390px;height:844px;position:relative;overflow:hidden;background:#141614;display:flex;flex-direction:column}
+.display{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+.mono{font-family:"Special Elite","Courier New",monospace}
+.hazard{height:6px;background:repeating-linear-gradient(-45deg,#e0b43a 0 14px,#111 14px 28px)}
+.tag{font-family:"Special Elite","Courier New",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border:1px solid #3a3f3a;color:#9aa096}
+.btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;background:#c9553d;color:#1a0c09;font-weight:600;font-size:16px;border-radius:2px}
+.btn.ghost{background:transparent;color:#e6e3da;border:1px solid #3a3f3a}
+.sello{position:absolute;font-family:"Special Elite","Courier New",monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#c9553d;border:2px solid #c9553d;padding:4px 10px;transform:rotate(-8deg);opacity:.85;mix-blend-mode:multiply}
+.papel{background:#e9e2cf;color:#2a2622;background-image:linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:100% 26px}
+.grano{position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(rgba(255,255,255,.35) .6px,transparent .7px);background-size:3px 3px;mix-blend-mode:overlay}

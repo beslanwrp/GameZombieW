@@ -1,0 +1,71 @@
+{
+  "artboards": [
+    {
+      "file": "Sala.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Sala"
+    },
+    {
+      "file": "Personaje.dc.html",
+      "x": 480,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Personaje · expediente"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 960,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tablero · planificación"
+    },
+    {
+      "file": "Carta.dc.html",
+      "x": 1440,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Carta · polaroid"
+    },
+    {
+      "file": "Zombi.dc.html",
+      "x": 1920,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Jugador zombi"
+    },
+    {
+      "file": "Pantalla.dc.html",
+      "x": 0,
+      "y": 1000,
+      "w": 1440,
+      "h": 810,
+      "title": "Pantalla compartida · TV"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "nota-direccion",
+      "x": 2400,
+      "y": 0,
+      "w": 300,
+      "text": "Dirección: crudo fotorealista, tono 3/5. Paleta: asfalto #141614, oliva #4f5a3a, óxido #c9553d, cinta de peligro #e0b43a, papel de expediente #e9e2cf.\n\nTipos: Big Shoulders Display (titulares), Special Elite (expedientes y notas a máquina), Source Sans 3 (interfaz).\n\nEl tablero es un boceto en perspectiva para la maqueta; en Unity será la escena 3D con cámara libre."
+    },
+    {
+      "id": "nota-decisiones",
+      "x": 2400,
+      "y": 320,
+      "w": 300,
+      "text": "Decisiones que hay que tomar viendo esto:\n1. ¿Las cartas de la mano se ven como polaroids pequeñas (como en Tablero) o como una tira uniforme?\n2. ¿La barra inferior con 4 pestañas o solo el tablero a pantalla completa con botones flotantes?\n3. ¿La pantalla del zombi en verde (como aquí) o en rojo?\n4. ¿Nombres reales de los jugadores o solo el personaje en la TV?"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
