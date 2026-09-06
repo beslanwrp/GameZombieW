@@ -124,3 +124,9 @@ test('partidas automáticas con 10 jugadores en las 12 misiones terminan', async
     assert.ok(G.fin, `${m} debe terminar (fase ${G.fase}, ronda ${G.ronda})`); JSON.stringify(G);
   }
 });
+
+test('variante hardcore tardío: el mordido se convierte en la noche siguiente', () => {
+  const G = R.nuevaPartida({ jugadores: seis.slice(0, 4).map((p, i) => ({ nombre: 'J' + (i + 1), personajeId: p })), misionId: 'invierno', semilla: 13, opciones: { hardcoreTardio: true } });
+  const j = G.jugadores[0]; R.herir(G, j, 1, 'prueba'); assert.equal(j.mordido.limite, 2);
+  R.faseNoche(G); assert.equal(j.estado, 'vivo'); if (G.fase === 'decision') R.resolverDecision(G, false); G.fase = 'noche'; R.faseNoche(G); assert.equal(j.estado, 'zombi');
+});

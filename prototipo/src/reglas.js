@@ -38,8 +38,8 @@ export const reglaSC = G => ['sin_contagio', 'ambos'].includes(mision(G).contagi
 export const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 
 /* ---------- creación de partida ---------- */
-export function nuevaPartida({ jugadores, misionId, semilla }) {
-  const G = { version: 2, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
+export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
+  const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
     recetasConocidas: Object.keys(RECETAS).filter(r => RECETAS[r].inicial), almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
@@ -264,6 +264,7 @@ export function aplicarMordisco(G, j) {
   if (regla === 'cuenta_atras') { j.mordido = { turnos: PARAMS.turnosContagio, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. ${PARAMS.turnosContagio} turnos para curarlo o amputar.`, 'peligro'); }
   else if (regla === 'sin_contagio') { j.mordido = { sc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Si no se anula con antibióticos, Tratamiento o amputación antes de la próxima noche, la misión fracasa.`, 'peligro'); }
   else if (regla === 'ambos') { j.mordido = { sc: true, hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Sin cura antes de la próxima noche, la misión fracasa y además se convertirá.`, 'peligro'); }
+  else if (G.opciones.hardcoreTardio) { j.mordido = { hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Se convertirá en la noche siguiente: una ronda para despedirse y repartir el inventario.`, 'peligro'); }
   else { j.mordido = { hc: true, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Al terminar la ronda se convertirá.`, 'peligro'); }
 }
 export function craftear(G, recetaId, chapuza = false) {

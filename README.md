@@ -15,6 +15,7 @@ Hito M0 v0.2: prototipo web de reglas completo (`prototipo/dist/index.html`) con
 | `docs/02-crafteo.md` | Diez recetas de crafteo con pesos y reglas comunes |
 | `docs/03-documento-de-diseno.md` | Documento de diseño completo v1.0: reglas, ronda, dados, ruido, contagio, jugador zombi, misiones, cartas, personajes, cámara 3D libre, red, tecnología y plan |
 | `docs/04-prototipo-m0.md` | Prototipo M0: cómo probarlo, qué implementa, simplificaciones y qué observar en las pruebas |
+| `docs/05-hoja-de-reglas.md` | Hoja de reglas de una página para la mesa |
 | `docs/encuesta/ultima-ronda.html` | Encuesta interactiva con maquetas SVG (copia local de la publicada como artefacto) |
 | `docs/encuesta/z2099-camara.html` | Comparador interactivo de cámaras: isométrica fija, 3D libre, cenital y tercera persona |
 

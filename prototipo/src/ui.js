@@ -32,17 +32,18 @@ function inicio() {
   const pintaNombres = () => { nombres.innerHTML = ''; for (let i = 0; i < +n.value; i++) nombres.append(el('input', { type: 'text', placeholder: 'Jugador ' + (i + 1), maxlength: 14 })); };
   n.addEventListener('change', pintaNombres); pintaNombres();
   const mis = el('select', {}, el('option', { value: '' }, 'Misión al azar'), ...Object.entries(MISIONES).map(([id, m]) => el('option', { value: id }, `${m.nombre} · ${m.etiquetas.join(' ')} · ${m.rondas} rondas`)));
-  cont.append(el('label', {}, 'Jugadores', n), nombres, el('label', {}, 'Misión', mis),
+  const hc = el('select', {}, el('option', { value: '' }, 'Conversión al terminar la ronda (documento v1.0)'), el('option', { value: '1' }, 'Conversión en la noche siguiente (propuesta del simulador)'));
+  cont.append(el('label', {}, 'Jugadores', n), nombres, el('label', {}, 'Misión', mis), el('label', {}, 'Variante hardcore', hc), el('button', { class: 'mini', onclick: verReglas }, 'Hoja de reglas'),
     el('button', { class: 'primario ancho', onclick: () => {
       const ids = Object.keys(MISIONES); const misionId = mis.value || ids[Math.floor(Math.random() * ids.length)];
       const js = [...nombres.querySelectorAll('input')].map((inp, i) => ({ nombre: inp.value.trim() || 'Jugador ' + (i + 1) }));
-      UI.reparto = { jugadores: js, misionId, idx: 0, semilla: Math.floor(Math.random() * 1e9) }; guardar(); reparto();
+      UI.reparto = { jugadores: js, misionId, idx: 0, semilla: Math.floor(Math.random() * 1e9), opciones: { hardcoreTardio: hc.value === '1' } }; guardar(); reparto();
     } }, 'Empezar'));
   mostrar('inicio');
 }
 function reparto() {
   const Rp = UI.reparto;
-  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${MISIONES[G.misionId].rondas} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
+  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla, opciones: Rp.opciones || {} }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${MISIONES[G.misionId].rondas} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
   const j = Rp.jugadores[Rp.idx]; const usados = Rp.jugadores.filter(x => x.personajeId).map(x => x.personajeId); const libres = Object.keys(PERSONAJES).filter(p => !usados.includes(p)).sort(() => Math.random() - .5);
   const oferta = libres.slice(0, 2);
   pasar(j.nombre, null, () => {
@@ -78,8 +79,18 @@ function textoObjetivo() {
 function cabecera(root) {
   const M = MISIONES[G.misionId]; const h = root.querySelector('.cabecera'); h.innerHTML = '';
   const ruido = el('div', { class: 'ruido' + (G.ruido >= 6 ? ' alto' : ''), title: 'Ruido' }, el('span', { class: 'lab' }, 'Ruido'), el('div', { class: 'ruido-bar' }, ...Array.from({ length: G.escalado.ruidoTope }, (_, i) => el('i', { class: i < G.ruido ? 'on' : '' }))), el('b', {}, `${G.ruido}/${G.escalado.ruidoTope}`));
-  h.append(el('div', { class: 'mision' }, el('b', {}, M.nombre), el('span', {}, ` · Ronda ${G.ronda}/${M.rondas} · ${textoObjetivo()}`)), ruido, el('button', { class: 'mini', onclick: verLog }, 'Registro'));
+  h.append(el('div', { class: 'mision' }, el('b', {}, M.nombre), el('span', {}, ` · Ronda ${G.ronda}/${M.rondas} · ${textoObjetivo()}`)), ruido, el('button', { class: 'mini', onclick: verLog }, 'Registro'), el('button', { class: 'mini', onclick: verReglas }, 'Reglas'));
 }
+const REGLAS = `
+<h4>La ronda</h4><p>Por orden de iniciativa, cada superviviente tira sus dados y tiene <b>1 movimiento y 2 acciones</b>. Después se mueven los zombis y el jugador zombi. Al caer la noche el ruido sube 1, si llega al tope entra una carta de horda, en rondas pares hay evento, el refugio cura 1 y avanzan los contagios.</p>
+<h4>Dados</h4><p>Cada dado: 3 caras de <b>paso</b> (1 casilla / 1 impacto), <b>doble paso</b> (2 / 2), <b>ruido</b> (0 casillas y +1 ruido / 1 impacto y +1 ruido) y <b>mordisco</b> (0 / 0; si terminas al lado de un zombi te ataca; en combate el zombi contraataca).</p>
+<h4>Acciones</h4><p>Saquear (edificio, gasolinera, farmacia, taller; dos veces por casilla), atacar, craftear (gratis en taller), curar, amputar, dar cartas (adyacente o por enlace), levantar a un caído, conducir o subir de pasajero, descansar (+1 vida, −1 pánico sin zombis a 2 casillas).</p>
+<h4>Combate</h4><p>Tira los dados del arma (sin arma 1). Impactos ≥ fuerza del zombi: muere. Contra una horda, cada 2 impactos eliminan un caminante. Armas de fuego: +2 ruido y alcance 3 con línea de visión. El acorazado solo cae cuerpo a cuerpo o con molotov.</p>
+<h4>Defensa</h4><p>Cuando un zombi entra en tu casilla tiras 1 dado (Beatriz 2). Paso o doble: esquivas. Ruido: esquivas con +1 ruido. Mordisco: 1 herida (2 si es horda) y quedas <b>mordido</b>.</p>
+<h4>Contagio</h4><p>Lo fija la misión. <b>Cuenta atrás</b>: 4 turnos para curarte con Tratamiento (+2), antibióticos (+1) o amputación. <b>Sin contagio</b>: hasta la noche siguiente para anularlo o la misión fracasa. <b>Hardcore</b>: te conviertes al caer la noche (o la siguiente, según la variante elegida).</p>
+<h4>Jugador zombi</h4><p>Actúa tras los zombis con 2 acciones: empujar una horda, mover su ficha, atacar, oler una mano, ocultarse entre caminantes. Gana cuando más de la mitad del equipo esté convertido o muerto. Evoluciona con cada conversión.</p>
+<h4>Peso</h4><p>Capacidad base 6. Materiales 0, armas y consumibles 1, bidones, tablas y chapa 2. Sobrecargado: un dado menos.</p>`;
+function verReglas() { modal('Hoja de reglas', REGLAS, [['Cerrar', null]]); }
 function verLog() { const c = el('div', { class: 'log' }); [...G.log].reverse().slice(0, 80).forEach(l => c.append(el('div', { class: 'l ' + l.tipo }, el('span', { class: 'r' }, 'R' + l.ronda), l.texto))); modal('Registro de la partida', c); }
 
 /* ---------- pantalla del superviviente ---------- */
