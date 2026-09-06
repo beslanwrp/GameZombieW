@@ -52,3 +52,7 @@ La duda del comentario final. Las dos opciones usan modelos 3D reales; lo que ca
 ## Tecnología recomendada
 
 **Unity** (Universal Render Pipeline). Motivos: es el estándar para fotorealismo en móvil, tiene la mejor cadena de realidad aumentada si más adelante la quieres (AR Foundation), permite compilar la misma escena como cliente de pantalla compartida para Android TV y como cliente de móvil, y su ecosistema de red (Netcode for GameObjects o Photon Fusion) cubre 10 jugadores con sala por código. Godot 4 sería la alternativa si el presupuesto manda y se renuncia a la realidad aumentada. El prototipo de reglas en navegador es independiente de esta decisión.
+
+## Cambios propuestos tras la simulación del prototipo (v0.2)
+
+El simulador de `prototipo/sim.mjs` obligó a ajustar nueve reglas del documento de diseño para que el juego fuera ganable. Están detalladas en `docs/04-prototipo-m0.md`. Las más importantes: el tope de ruido escala con los jugadores, las losetas de borde no sueltan hordas al revelarse, la cara de mordisco en combate provoca un contraataque con tirada de defensa en vez de un mordisco automático, las hordas pierden un caminante por cada 2 impactos, «sin contagio» da hasta la noche siguiente para anular el mordisco, el jugador zombi gana con más de la mitad del equipo y los zombis solo perciben a 4 casillas. Pendiente de confirmar en mesa antes de pasarlas al documento de diseño.

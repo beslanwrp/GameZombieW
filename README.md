@@ -6,7 +6,7 @@ zombis, hordas, objetos y crafteo, una misión de equipo y un modo «jugador zom
 
 ## Estado
 
-Hito M0 en marcha: prototipo web de reglas jugable (`prototipo/dist/index.html`). Documento de diseño v1.0 cerrado con cámara 3D libre.
+Hito M0 v0.2: prototipo web de reglas completo (`prototipo/dist/index.html`) con 10 jugadores, 12 personajes, 12 misiones y simulador de equilibrio. Documento de diseño v1.0 cerrado con cámara 3D libre.
 
 | Documento | Contenido |
 | --- | --- |
@@ -30,4 +30,5 @@ Hito M0 en marcha: prototipo web de reglas jugable (`prototipo/dist/index.html`)
 ```
 node --test prototipo/test/    # pruebas del motor
 node prototipo/build.mjs       # genera prototipo/dist/index.html
+node prototipo/sim.mjs 40      # simula 40 partidas por misión y tamaño de grupo
 ```
