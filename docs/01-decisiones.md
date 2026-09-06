@@ -56,3 +56,7 @@ La duda del comentario final. Las dos opciones usan modelos 3D reales; lo que ca
 ## Cambios propuestos tras la simulación del prototipo (v0.2)
 
 El simulador de `prototipo/sim.mjs` obligó a ajustar nueve reglas del documento de diseño para que el juego fuera ganable. Están detalladas en `docs/04-prototipo-m0.md`. Las más importantes: el tope de ruido escala con los jugadores, las losetas de borde no sueltan hordas al revelarse, la cara de mordisco en combate provoca un contraataque con tirada de defensa en vez de un mordisco automático, las hordas pierden un caminante por cada 2 impactos, «sin contagio» da hasta la noche siguiente para anular el mordisco, el jugador zombi gana con más de la mitad del equipo y los zombis solo perciben a 4 casillas. Pendiente de confirmar en mesa antes de pasarlas al documento de diseño.
+
+## Cambios propuestos tras la simulación del prototipo
+
+Ver la tabla completa en `04-prototipo-m0.md`. En resumen: tope de ruido que escala con los jugadores, losetas de borde sin horda al revelarse, contraataque con tirada en vez de mordisco seguro en combate, hordas que pierden un caminante cada 2 impactos, una ronda de margen para anular el mordisco en misiones sin contagio, victoria zombi con más de la mitad del equipo, percepción de los zombis limitada a 4 casillas. Pendientes de confirmar en mesa antes de pasar al documento de diseño v1.1.

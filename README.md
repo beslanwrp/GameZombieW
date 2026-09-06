@@ -28,7 +28,8 @@ Hito M0 v0.2: prototipo web de reglas completo (`prototipo/dist/index.html`) con
 ## Desarrollo del prototipo
 
 ```
-node --test prototipo/test/    # pruebas del motor
-node prototipo/build.mjs       # genera prototipo/dist/index.html
+node --test prototipo/test/            # pruebas del motor
+node prototipo/build.mjs               # genera prototipo/dist/index.html
+node prototipo/sim.mjs 40 todas 4,6,10 # simulador de equilibrio
 node prototipo/sim.mjs 40      # simula 40 partidas por misión y tamaño de grupo
 ```
