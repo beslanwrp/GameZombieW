@@ -1,0 +1,103 @@
+{
+  "moto_dep": {
+    "nombre": "Moto con depósito",
+    "ing": [
+      "bidon",
+      "moto"
+    ],
+    "res": "moto_dep",
+    "inicial": true,
+    "texto": "Mueve 2 casillas por gasolina en lugar de tirar. Un pasajero. +1 ruido por turno en marcha."
+  },
+  "coche_dep": {
+    "nombre": "Coche con depósito",
+    "ing": [
+      "bidon",
+      "coche"
+    ],
+    "res": "coche_dep",
+    "texto": "Mueve 1 casilla por gasolina. 3 pasajeros. +6 de capacidad. Atropella caminantes. +2 ruido en marcha."
+  },
+  "molotov": {
+    "nombre": "Molotov",
+    "ing": [
+      "botella",
+      "trapo",
+      "bidon"
+    ],
+    "res": "molotov",
+    "texto": "Elimina todos los zombis de una casilla adyacente. Arde 2 rondas. La horda más cercana avanza 1 hacia el fuego."
+  },
+  "bate_clavos": {
+    "nombre": "Bate con clavos",
+    "ing": [
+      "tubo",
+      "clavos",
+      "cinta"
+    ],
+    "res": "bate_clavos",
+    "inicial": true,
+    "texto": "2 dados y +1 impacto en cuerpo a cuerpo. Durabilidad 4."
+  },
+  "silenciador": {
+    "nombre": "Silenciador improvisado",
+    "ing": [
+      "pistola",
+      "botella",
+      "cinta"
+    ],
+    "res": [
+      "pistola",
+      "silenciador"
+    ],
+    "texto": "Los siguientes 3 disparos no generan ruido."
+  },
+  "senuelo": {
+    "nombre": "Señuelo sonoro",
+    "ing": [
+      "radio",
+      "pilas"
+    ],
+    "res": "senuelo",
+    "texto": "Se deja en tu casilla: 2 rondas atrayendo a las hordas a 3 casillas. +2 ruido."
+  },
+  "tratamiento": {
+    "nombre": "Tratamiento",
+    "ing": [
+      "antibioticos",
+      "botiquin"
+    ],
+    "res": "tratamiento",
+    "inicial": true,
+    "texto": "Cuenta atrás: +2 turnos al mordido. Sin contagio: anula un mordisco de esta ronda."
+  },
+  "camuflaje": {
+    "nombre": "Camuflaje de vísceras",
+    "ing": [
+      "visceras",
+      "poncho"
+    ],
+    "res": "camuflaje",
+    "texto": "2 turnos atravesando casillas con caminantes. Se anula con lluvia o al disparar."
+  },
+  "barricada": {
+    "nombre": "Barricada",
+    "ing": [
+      "tablas",
+      "clavos",
+      "chapa"
+    ],
+    "res": "barricada",
+    "texto": "Bloquea una arista de tu casilla. Las hordas tardan una ronda en derribarla (+1 ruido). Los supervivientes la cruzan."
+  },
+  "enlace": {
+    "nombre": "Enlace",
+    "ing": [
+      "walkie",
+      "walkie",
+      "pilas"
+    ],
+    "res": "enlace",
+    "texto": "Une a dos supervivientes 4 rondas: pueden darse cartas a distancia."
+  }
+}

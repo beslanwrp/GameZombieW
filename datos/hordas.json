@@ -1,0 +1,42 @@
+[
+  {
+    "donde": "ruido",
+    "que": "horda",
+    "texto": "Una horda entra por la entrada más cercana al ruido."
+  },
+  {
+    "donde": "lejana",
+    "que": "horda",
+    "texto": "Una horda entra por la entrada más lejana a los supervivientes."
+  },
+  {
+    "donde": "ruido",
+    "que": "corredores",
+    "texto": "Tres corredores entran por la entrada más cercana al ruido."
+  },
+  {
+    "donde": "aleatoria",
+    "que": "acorazado",
+    "texto": "Un acorazado y tres caminantes entran por una entrada al azar."
+  },
+  {
+    "donde": null,
+    "que": "estampida",
+    "texto": "Los zombis del tablero se mueven una casilla extra."
+  },
+  {
+    "donde": null,
+    "que": "edificios",
+    "texto": "Un caminante aparece en cada edificio revelado sin supervivientes."
+  },
+  {
+    "donde": "aleatoria",
+    "que": "horda",
+    "texto": "Una horda entra por una entrada al azar."
+  },
+  {
+    "donde": "ruido",
+    "que": "horda",
+    "texto": "Una horda entra por la entrada más cercana al ruido."
+  }
+]

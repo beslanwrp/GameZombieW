@@ -1,10 +1,11 @@
 // Z-2099 · simulador de equilibrio: jugadores automáticos con una heurística sencilla.
 // Uso: node prototipo/sim.mjs [partidas=40] [misiones=todas] [jugadores=4,6,10]
-import * as R from './src/reglas.js';
+import * as Motor from './src/reglas.js';
 import { MISIONES, OBJETOS, RECETAS, PERSONAJES } from './src/datos.js';
+import { fileURLToPath } from 'node:url';
 
-const doce = Object.keys(PERSONAJES);
-const N = +process.argv[2] || 40; const misiones = process.argv[3] && process.argv[3] !== 'todas' ? process.argv[3].split(',') : Object.keys(MISIONES); const tam = (process.argv[4] || '4,6,10').split(',').map(Number);
+export const doce = Object.keys(PERSONAJES);
+let R = Motor; // el motor en uso; jugar() puede sustituirlo por una versión que graba las llamadas
 
 function bfs(G, desde, permitir) { const D = { [desde]: 0 }, P = {}, cola = [desde]; while (cola.length) { const k = cola.shift(); for (const v of R.vecinos(k)) { const c = G.casillas[v]; if (!c || D[v] != null || !permitir(c)) continue; D[v] = D[k] + 1; P[v] = k; cola.push(v); } } return { D, P }; }
 function primerPaso(G, desde, hasta, permitir) { const { D, P } = bfs(G, desde, permitir); if (D[hasta] == null) return null; let k = hasta; while (P[k] && P[k] !== desde) k = P[k]; return P[k] === desde ? k : null; }
@@ -67,13 +68,16 @@ function turnoZombiBot(G) {
   if (G.zturno && G.zturno.acciones > 0) { const h = Object.values(G.zombis).filter(x => x.tipo !== 'jugador').sort((a, b) => a.n - b.n).pop(); const v = h && R.vivos(G).sort((a, b) => R.dist(a.pos, h.pos) - R.dist(b.pos, h.pos))[0]; if (h && v) { const paso = primerPaso(G, h.pos, v.pos, c => !c.fuego); if (paso) R.zMoverHorda(G, h.id, paso); } }
   if (!G.fin) R.zTerminar(G);
 }
-function jugar(misionId, n, semilla) {
-  const jug = doce.slice(0, n).map((p, i) => ({ nombre: 'J' + (i + 1), personajeId: p }));
-  const G = R.nuevaPartida({ jugadores: jug, misionId, semilla }); let pasos = 0;
+export function jugar(misionId, n, semilla, opciones = {}, motor = Motor) {
+  R = motor; const jug = doce.slice(0, n).map((p, i) => ({ nombre: 'J' + (i + 1), personajeId: p }));
+  const G = R.nuevaPartida({ jugadores: jug, misionId, semilla, opciones }); let pasos = 0;
   while (!G.fin && pasos++ < 20000) { if (G.fase === 'turno') turnoBot(G); else if (G.fase === 'zombi') turnoZombiBot(G); else if (G.fase === 'decision') R.resolverDecision(G, false); else break; }
   if (!G.fin) throw new Error(`atascada ${misionId} n=${n} semilla=${semilla} fase=${G.fase}`);
-  return G;
+  R = Motor; return G;
 }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+const N = +process.argv[2] || 40; const misiones = process.argv[3] && process.argv[3] !== 'todas' ? process.argv[3].split(',') : Object.keys(MISIONES); const tam = (process.argv[4] || '4,6,10').split(',').map(Number);
 const filas = [];
 for (const m of misiones) for (const n of tam) {
   const acc = { victorias: 0, rondas: 0, primeraHorda: [], mordiscos: 0, conversiones: 0, hordas: 0, crafteos: 0, curas: 0, zombiGana: 0, ruidoFin: 0, mordisco_fase: 0, mordisco_combate: 0, mordisco_dado: 0 };
@@ -84,3 +88,4 @@ for (const m of misiones) for (const n of tam) {
 console.log(`Z-2099 · ${N} partidas por fila · bots heurísticos\n`);
 console.log(['Misión'.padEnd(26), 'Jug', 'Victoria', 'Zombi', 'Rondas', 'Horda1', 'Mord', 'Conv', 'Hordas', 'Craft', 'Curas', 'Mord fase/comb/dado'].join('\t'));
 for (const f of filas) console.log([f.mision, f.jug, f.victoria, f.zombiGana, f.rondas, f.horda1, f.mordiscos, f.conversiones, f.hordas, f.crafteos, f.curas, f.origen].join('\t'));
+}

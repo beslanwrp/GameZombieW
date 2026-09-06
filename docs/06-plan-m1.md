@@ -66,10 +66,12 @@ El prototipo JS es la especificación ejecutable. El porte se hace función a fu
 
 ### Pruebas doradas
 
-1. Añadir a `prototipo/sim.mjs` una salida `--traza semilla` que escriba el registro completo de una partida (cada línea del `log` más el estado final) en JSON.
-2. Generar 100 trazas con semillas fijas, mezclando misiones y tamaños de grupo.
-3. La prueba NUnit carga cada traza, ejecuta la misma partida con las mismas intenciones de los bots y compara línea a línea.
-4. Cualquier divergencia es un error del porte, no una decisión de diseño. Las decisiones de diseño se hacen primero en JS, se pasan por el simulador y se regeneran las trazas.
+Ya existen. `prototipo/trazas.mjs` graba una partida como traza: parámetros, secuencia de intenciones enviadas al motor (`[función, argumentos]`) y el registro completo que produjo, más el final y un resumen del estado. Hay 24 trazas en `prototipo/trazas/` (12 misiones × grupos de 4, 6 y 10, algunas con la variante hardcore tardía) y `node prototipo/trazas.mjs verificar` demuestra que el motor JS las reproduce línea a línea.
+
+1. La prueba NUnit carga cada traza, crea la partida con la misma semilla y aplica las intenciones en orden con el motor C#.
+2. Compara el registro línea a línea y el final. Los textos del registro son parte del contrato: el C# debe producir las mismas cadenas.
+3. Cualquier divergencia es un error del porte, no una decisión de diseño. Las decisiones de diseño se hacen primero en JS, se pasan por el simulador y se regeneran las trazas con `node prototipo/trazas.mjs generar 100`.
+4. El exportador `node prototipo/exportar-datos.mjs` produce `datos/*.json`, la entrada del ensamblado `Z2099.Datos`.
 
 Esto convierte tres semanas de porte en un trabajo verificable y evita el clásico «en Unity se comporta distinto».
 

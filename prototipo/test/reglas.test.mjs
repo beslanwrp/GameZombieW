@@ -130,3 +130,8 @@ test('variante hardcore tardío: el mordido se convierte en la noche siguiente',
   const j = G.jugadores[0]; R.herir(G, j, 1, 'prueba'); assert.equal(j.mordido.limite, 2);
   R.faseNoche(G); assert.equal(j.estado, 'vivo'); if (G.fase === 'decision') R.resolverDecision(G, false); G.fase = 'noche'; R.faseNoche(G); assert.equal(j.estado, 'zombi');
 });
+
+test('las trazas doradas se reproducen línea a línea con el motor JS', async () => {
+  const T = await import('../trazas.mjs');
+  for (const [m, n, s] of [['farmacia', 4, 77], ['protocolo', 10, 78], ['convoy', 6, 79]]) { const t = T.grabar(m, n, s, { hardcoreTardio: n === 6 }); assert.ok(t.llamadas.length > 20); assert.ok(t.log.length > 20); const d = T.comparar(t, T.reproducir(t)); assert.deepEqual(d, [], `${m}: ${JSON.stringify(d[0] || null)}`); }
+});

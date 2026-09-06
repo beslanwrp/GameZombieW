@@ -1,0 +1,65 @@
+{
+  "2": {
+    "ruidoTope": 10,
+    "ruidoTrasHorda": 3,
+    "horda": 3,
+    "extraLoseta": 0,
+    "ruidoInicial": 2
+  },
+  "3": {
+    "ruidoTope": 10,
+    "ruidoTrasHorda": 3,
+    "horda": 3,
+    "extraLoseta": 0,
+    "ruidoInicial": 2
+  },
+  "4": {
+    "ruidoTope": 10,
+    "ruidoTrasHorda": 3,
+    "horda": 5,
+    "extraLoseta": 0,
+    "ruidoInicial": 2
+  },
+  "5": {
+    "ruidoTope": 11,
+    "ruidoTrasHorda": 4,
+    "horda": 5,
+    "extraLoseta": 0,
+    "ruidoInicial": 2
+  },
+  "6": {
+    "ruidoTope": 12,
+    "ruidoTrasHorda": 5,
+    "horda": 5,
+    "extraLoseta": 0,
+    "ruidoInicial": 2
+  },
+  "7": {
+    "ruidoTope": 13,
+    "ruidoTrasHorda": 6,
+    "horda": 7,
+    "extraLoseta": 1,
+    "ruidoInicial": 2
+  },
+  "8": {
+    "ruidoTope": 14,
+    "ruidoTrasHorda": 7,
+    "horda": 7,
+    "extraLoseta": 1,
+    "ruidoInicial": 2
+  },
+  "9": {
+    "ruidoTope": 15,
+    "ruidoTrasHorda": 8,
+    "horda": 9,
+    "extraLoseta": 1,
+    "ruidoInicial": 3
+  },
+  "10": {
+    "ruidoTope": 16,
+    "ruidoTrasHorda": 9,
+    "horda": 9,
+    "extraLoseta": 1,
+    "ruidoInicial": 3
+  }
+}

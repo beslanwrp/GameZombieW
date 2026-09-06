@@ -1,0 +1,34 @@
+{
+  "caminante": {
+    "nombre": "Caminante",
+    "fuerza": 1,
+    "mov": 1,
+    "letra": "C"
+  },
+  "corredor": {
+    "nombre": "Corredor",
+    "fuerza": 2,
+    "mov": 2,
+    "letra": "R"
+  },
+  "acorazado": {
+    "nombre": "Acorazado",
+    "fuerza": 3,
+    "mov": 1,
+    "letra": "A",
+    "inmuneDistancia": true
+  },
+  "nino": {
+    "nombre": "Niño",
+    "fuerza": 1,
+    "mov": 1,
+    "letra": "N",
+    "panico": 1
+  },
+  "jugador": {
+    "nombre": "Jugador zombi",
+    "fuerza": 2,
+    "mov": 1,
+    "letra": "Z"
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "cinta": {
+    "nombre": "Cinta americana",
+    "tipo": "material",
+    "peso": 0
+  },
+  "clavos": {
+    "nombre": "Clavos",
+    "tipo": "material",
+    "peso": 0
+  },
+  "pilas": {
+    "nombre": "Pilas",
+    "tipo": "material",
+    "peso": 0
+  },
+  "trapo": {
+    "nombre": "Trapo",
+    "tipo": "material",
+    "peso": 0
+  },
+  "botella": {
+    "nombre": "Botella",
+    "tipo": "material",
+    "peso": 0
+  },
+  "tubo": {
+    "nombre": "Tubo de acero",
+    "tipo": "material",
+    "peso": 1
+  },
+  "tablas": {
+    "nombre": "Tablas",
+    "tipo": "material",
+    "peso": 2
+  },
+  "chapa": {
+    "nombre": "Chapa",
+    "tipo": "material",
+    "peso": 2
+  },
+  "walkie": {
+    "nombre": "Walkie-talkie",
+    "tipo": "material",
+    "peso": 1
+  },
+  "bate": {
+    "nombre": "Bate",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "durabilidad": 3
+  },
+  "bate_clavos": {
+    "nombre": "Bate con clavos",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "extra": 1,
+    "durabilidad": 4
+  },
+  "machete": {
+    "nombre": "Machete",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "durabilidad": 4,
+    "amputa": true
+  },
+  "katana": {
+    "nombre": "Katana",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 3,
+    "amputa": true
+  },
+  "pistola": {
+    "nombre": "Pistola",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "distancia": 3,
+    "fuego": true,
+    "ruido": 2
+  },
+  "rifle": {
+    "nombre": "Rifle",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "distancia": 3,
+    "fuego": true,
+    "ruido": 2,
+    "mataCorredor": true
+  },
+  "ballesta": {
+    "nombre": "Ballesta",
+    "tipo": "arma",
+    "peso": 1,
+    "dados": 2,
+    "distancia": 3,
+    "ruido": 0
+  },
+  "silenciador": {
+    "nombre": "Silenciador improvisado",
+    "tipo": "otro",
+    "peso": 0,
+    "usos": 3
+  },
+  "botiquin": {
+    "nombre": "Botiquín",
+    "tipo": "consumible",
+    "peso": 1,
+    "cura": 2
+  },
+  "antibioticos": {
+    "nombre": "Antibióticos",
+    "tipo": "consumible",
+    "peso": 1,
+    "cura": 1,
+    "contagio": 1
+  },
+  "tratamiento": {
+    "nombre": "Tratamiento",
+    "tipo": "consumible",
+    "peso": 1,
+    "contagio": 2
+  },
+  "comida": {
+    "nombre": "Comida",
+    "tipo": "consumible",
+    "peso": 1
+  },
+  "moto": {
+    "nombre": "Moto (sin gasolina)",
+    "tipo": "vehiculo",
+    "peso": 0,
+    "clase": "moto"
+  },
+  "coche": {
+    "nombre": "Coche (sin gasolina)",
+    "tipo": "vehiculo",
+    "peso": 0,
+    "clase": "coche"
+  },
+  "moto_dep": {
+    "nombre": "Moto con depósito",
+    "tipo": "vehiculo",
+    "peso": 0,
+    "clase": "moto",
+    "porGas": 2,
+    "ruido": 1,
+    "gasMax": 3,
+    "plazas": 1
+  },
+  "coche_dep": {
+    "nombre": "Coche con depósito",
+    "tipo": "vehiculo",
+    "peso": 0,
+    "clase": "coche",
+    "porGas": 1,
+    "ruido": 2,
+    "gasMax": 4,
+    "capacidad": 6,
+    "atropella": true,
+    "plazas": 3
+  },
+  "bidon": {
+    "nombre": "Bidón de gasolina",
+    "tipo": "combustible",
+    "peso": 2
+  },
+  "radio": {
+    "nombre": "Radio",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "poncho": {
+    "nombre": "Poncho",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "visceras": {
+    "nombre": "Vísceras de zombi",
+    "tipo": "material",
+    "peso": 0
+  },
+  "molotov": {
+    "nombre": "Molotov",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "senuelo": {
+    "nombre": "Señuelo sonoro",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "camuflaje": {
+    "nombre": "Camuflaje de vísceras",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "barricada": {
+    "nombre": "Barricada",
+    "tipo": "otro",
+    "peso": 2
+  },
+  "enlace": {
+    "nombre": "Enlace (walkies con pilas)",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "semillas": {
+    "nombre": "Semillas",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "suministro": {
+    "nombre": "Suministro marcado",
+    "tipo": "otro",
+    "peso": 1
+  },
+  "muestra_caminante": {
+    "nombre": "Muestra de caminante",
+    "tipo": "material",
+    "peso": 0
+  },
+  "muestra_corredor": {
+    "nombre": "Muestra de corredor",
+    "tipo": "material",
+    "peso": 0
+  },
+  "muestra_acorazado": {
+    "nombre": "Muestra de acorazado",
+    "tipo": "material",
+    "peso": 0
+  },
+  "receta": {
+    "nombre": "Recetario",
+    "tipo": "receta",
+    "peso": 0
+  }
+}

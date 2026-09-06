@@ -86,7 +86,9 @@ Los bots no coordinan, usan mal los vehículos y casi nunca curan: estas cifras 
 | `prototipo/src/datos.js` | Parámetros, cartas, recetas, zombis, personajes, misiones, eventos, hordas, escalado |
 | `prototipo/src/reglas.js` | Motor de reglas puro, sin interfaz, estado serializable |
 | `prototipo/src/ui.js` | Interfaz móvil con Canvas y modo «pasar el móvil» |
-| `prototipo/sim.mjs` | Simulador de equilibrio: `node prototipo/sim.mjs 40 todas 4,6,10` |
+| `prototipo/sim.mjs` | Simulador de equilibrio: `node prototipo/sim.mjs 40 todas 4,6,10`. También exporta `jugar()` para grabar trazas |
+| `prototipo/trazas.mjs` | Trazas doradas para el porte a C#: `generar` escribe `prototipo/trazas/*.json`, `verificar` las reproduce |
+| `prototipo/exportar-datos.mjs` | Exporta la hoja de equilibrio a `datos/*.json` para Unity |
 | `prototipo/plantilla.html` | Maqueta y estilos |
 | `prototipo/build.mjs` | Empaqueta todo en `dist/index.html` (y `dist/artifact.html`) |
-| `prototipo/test/reglas.test.mjs` | 23 pruebas del motor: `node --test prototipo/test/` |
+| `prototipo/test/reglas.test.mjs` | 25 pruebas del motor, incluida la reproducción de trazas: `node --test prototipo/test/` |

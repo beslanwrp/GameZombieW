@@ -1,0 +1,57 @@
+[
+  {
+    "id": "lluvia",
+    "nombre": "Lluvia",
+    "texto": "Ruido -1. El camuflaje de vísceras se anula."
+  },
+  {
+    "id": "silencio",
+    "nombre": "Silencio",
+    "texto": "Ruido -1. Los muertos se quedan quietos un momento."
+  },
+  {
+    "id": "motor",
+    "nombre": "Motor lejano",
+    "texto": "Aparece un coche abandonado en una calle revelada."
+  },
+  {
+    "id": "estampida",
+    "nombre": "Estampida",
+    "texto": "Todos los zombis se mueven una casilla extra ahora."
+  },
+  {
+    "id": "recuerdo",
+    "nombre": "Recuerdo",
+    "texto": "Cada jugador cuenta algo de su personaje. Todos pierden 1 de pánico."
+  },
+  {
+    "id": "tardio",
+    "nombre": "Mordisco tardío",
+    "texto": "Un jugador que curó un mordisco esta partida vuelve a estar mordido con 2 turnos."
+  },
+  {
+    "id": "otros",
+    "nombre": "Otros supervivientes",
+    "texto": "El que menos cartas tiene recibe 2 objetos (3 si es Anselmo). Ruido +2."
+  },
+  {
+    "id": "niebla",
+    "nombre": "Niebla",
+    "texto": "Durante la próxima ronda, las armas a distancia solo alcanzan 1 casilla."
+  },
+  {
+    "id": "lluvia",
+    "nombre": "Lluvia",
+    "texto": "Ruido -1. El camuflaje de vísceras se anula."
+  },
+  {
+    "id": "estampida",
+    "nombre": "Estampida",
+    "texto": "Todos los zombis se mueven una casilla extra ahora."
+  },
+  {
+    "id": "semillas",
+    "nombre": "Semillas",
+    "texto": "Un superviviente encuentra un saco de semillas. Solo en La granja."
+  }
+]

@@ -1,0 +1,149 @@
+{
+  "farmacia": {
+    "nombre": "Farmacia Central",
+    "etiquetas": [
+      "R"
+    ],
+    "contagio": "cuenta_atras",
+    "rondas": 10,
+    "texto": "Traed 3 antibióticos al refugio. Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.",
+    "objetivo": "antibioticos_refugio",
+    "cantidad": 3,
+    "farmacias": 2
+  },
+  "sin_gota": {
+    "nombre": "Sin una gota",
+    "etiquetas": [
+      "SC",
+      "T"
+    ],
+    "contagio": "sin_contagio",
+    "rondas": 10,
+    "texto": "Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.",
+    "objetivo": "todos_helipuerto",
+    "especial": "helipuerto"
+  },
+  "granja": {
+    "nombre": "La granja",
+    "etiquetas": [
+      "HC",
+      "R"
+    ],
+    "contagio": "hardcore",
+    "rondas": 12,
+    "texto": "Conseguid las semillas (llegan por evento) y 2 bidones, dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.",
+    "objetivo": "granja",
+    "semillas": true
+  },
+  "emisora": {
+    "nombre": "La emisora",
+    "etiquetas": [
+      "R",
+      "T"
+    ],
+    "contagio": "cuenta_atras",
+    "rondas": 10,
+    "texto": "Craftead un Señuelo, llevadlo a la torre de radio y mantened a un superviviente allí con el señuelo sonando 2 noches.",
+    "objetivo": "torre",
+    "especial": "torre",
+    "cantidad": 2
+  },
+  "convoy": {
+    "nombre": "El convoy",
+    "etiquetas": [
+      "R",
+      "T"
+    ],
+    "contagio": "cuenta_atras",
+    "rondas": 9,
+    "texto": "Craftead vehículos con depósito y sacad a 6 supervivientes (o a todos si sois menos) por cualquier borde del mapa, a bordo.",
+    "objetivo": "convoy",
+    "cantidad": 6
+  },
+  "cuarentena": {
+    "nombre": "Cuarentena",
+    "etiquetas": [
+      "SC",
+      "T"
+    ],
+    "contagio": "sin_contagio",
+    "rondas": 8,
+    "texto": "Levantad barricadas en las 6 aristas del refugio antes de la ronda 8 sin un solo contagio.",
+    "objetivo": "cuarentena",
+    "cantidad": 6
+  },
+  "invierno": {
+    "nombre": "Invierno",
+    "etiquetas": [
+      "HC",
+      "T"
+    ],
+    "contagio": "hardcore",
+    "rondas": 10,
+    "texto": "Acumulad 10 cartas de comida en el refugio antes de la ronda 10. Un mordisco convierte al terminar la ronda.",
+    "objetivo": "comida_refugio",
+    "cantidad": 10
+  },
+  "deposito": {
+    "nombre": "El depósito",
+    "etiquetas": [
+      "R"
+    ],
+    "contagio": "cuenta_atras",
+    "rondas": 12,
+    "texto": "Llevad 4 bidones de gasolina al generador del norte.",
+    "objetivo": "deposito",
+    "especial": "generador",
+    "cantidad": 4
+  },
+  "ultima": {
+    "nombre": "Última llamada",
+    "etiquetas": [
+      "HC",
+      "T"
+    ],
+    "contagio": "hardcore",
+    "rondas": 12,
+    "texto": "Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.",
+    "objetivo": "sobrevivir",
+    "hordaDesde": 6
+  },
+  "suministros": {
+    "nombre": "Los suministros del puente",
+    "etiquetas": [
+      "R",
+      "T"
+    ],
+    "contagio": "cuenta_atras",
+    "rondas": 10,
+    "texto": "Recoged los 5 suministros marcados, repartidos por las losetas de borde.",
+    "objetivo": "suministros",
+    "cantidad": 5,
+    "suministros": 5
+  },
+  "cero": {
+    "nombre": "Cero contagios",
+    "etiquetas": [
+      "SC",
+      "T"
+    ],
+    "contagio": "sin_contagio",
+    "rondas": 12,
+    "texto": "Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.",
+    "objetivo": "cero"
+  },
+  "protocolo": {
+    "nombre": "Protocolo Z-2099",
+    "etiquetas": [
+      "HC",
+      "SC",
+      "T"
+    ],
+    "contagio": "ambos",
+    "rondas": 12,
+    "texto": "Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión.",
+    "objetivo": "protocolo",
+    "especial": "laboratorio",
+    "muestras": true
+  }
+}
