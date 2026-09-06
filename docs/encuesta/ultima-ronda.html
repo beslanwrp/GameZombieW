@@ -1,0 +1,529 @@
+<title>Última Ronda</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#E4E5E0; --surface:#F2F2EE; --surface2:#E9EAE5; --ink:#16181A; --muted:#5A5F64; --line:#C6C9C2;
+  --accent:#9B2C1C; --accent-ink:#FFFFFF; --olive:#5F6E36; --hazard:#D6A319; --focus:#2B5FA8;
+  --shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 18px rgba(20,24,28,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131517; --surface:#1C1F22; --surface2:#23272B; --ink:#E8E6DF; --muted:#9BA1A5; --line:#33393E;
+    --accent:#D0553F; --accent-ink:#1A0C09; --olive:#9FAE60; --hazard:#E4B738; --focus:#7FA6E8;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131517; --surface:#1C1F22; --surface2:#23272B; --ink:#E8E6DF; --muted:#9BA1A5; --line:#33393E;
+  --accent:#D0553F; --accent-ink:#1A0C09; --olive:#9FAE60; --hazard:#E4B738; --focus:#7FA6E8;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.5;}
+.hazard{height:10px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 18px,var(--ink) 18px 36px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 96px;}
+header.top{padding:40px 0 24px;border-bottom:1px solid var(--line);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+h1{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:clamp(52px,9vw,96px);line-height:.9;letter-spacing:.01em;margin:8px 0 14px;text-transform:uppercase;text-wrap:balance;}
+h1 span{color:var(--accent);}
+.lead{max-width:62ch;font-size:19px;margin:0;color:var(--ink);}
+.lead + .lead{margin-top:10px;color:var(--muted);}
+h2{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:700;font-size:38px;line-height:1;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;text-wrap:balance;}
+h3{font-size:19px;font-weight:600;margin:0 0 6px;line-height:1.3;}
+p{margin:0 0 12px;max-width:68ch;}
+.muted{color:var(--muted);}
+small,.small{font-size:14px;}
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--line);border-radius:3px;color:var(--muted);vertical-align:middle;}
+.pill.rec{border-color:var(--olive);color:var(--olive);}
+.pill.warn{border-color:var(--hazard);color:var(--hazard);}
+
+/* concept summary */
+.concept{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:28px 0 0;}
+.concept div{background:var(--surface);padding:14px 16px;}
+.concept .k{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.concept .v{font-size:16px;line-height:1.35;}
+
+/* sticky progress */
+.progress{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;display:flex;align-items:center;gap:14px;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--muted);}
+.progress .bar{flex:1;height:6px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;}
+.progress .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s;}
+.progress b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:500;}
+
+/* sections */
+section.q{padding:40px 0 8px;border-bottom:1px solid var(--line);}
+section.q .num{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.14em;color:var(--accent);margin-bottom:8px;}
+.intro{max-width:66ch;color:var(--muted);margin-bottom:22px;}
+.pregunta{margin:0 0 30px;}
+.pregunta .texto{font-weight:600;font-size:18px;margin-bottom:4px;}
+.pregunta .ayuda{color:var(--muted);font-size:15px;margin-bottom:12px;max-width:66ch;}
+.opts{display:grid;gap:8px;}
+.opts.cols{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+label.opt{display:grid;grid-template-columns:22px 1fr;gap:12px;align-items:start;padding:12px 14px;background:var(--surface);border:1px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s;}
+label.opt:hover{border-color:var(--muted);}
+label.opt:has(input:checked){border-color:var(--accent);background:var(--surface2);box-shadow:inset 3px 0 0 var(--accent);}
+label.opt:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:2px;}
+label.opt input{margin:4px 0 0;width:16px;height:16px;accent-color:var(--accent);}
+label.opt .t{font-weight:600;line-height:1.3;}
+label.opt .d{color:var(--muted);font-size:15px;line-height:1.4;margin-top:2px;}
+label.opt .pill{margin-left:6px;}
+
+/* style cards with mockups */
+.styles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+label.style{display:block;background:var(--surface);border:1px solid var(--line);cursor:pointer;position:relative;transition:border-color .15s,transform .15s;box-shadow:var(--shadow);}
+label.style:hover{border-color:var(--muted);}
+label.style:has(input:checked){border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-1px;}
+label.style:has(input:focus-visible){outline:2px solid var(--focus);}
+label.style input{position:absolute;opacity:0;pointer-events:none;}
+label.style svg{display:block;width:100%;height:auto;aspect-ratio:3/2;}
+label.style .body{padding:14px 16px 16px;}
+label.style .letter{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:34px;font-weight:800;line-height:1;color:var(--accent);margin-right:8px;vertical-align:-3px;}
+label.style .t{font-weight:600;font-size:18px;}
+label.style .d{color:var(--muted);font-size:15px;line-height:1.45;margin:6px 0 10px;}
+label.style ul{margin:0;padding:0;list-style:none;font-size:14px;display:grid;gap:3px;}
+label.style ul li::before{content:"";display:inline-block;width:8px;height:8px;margin-right:8px;background:var(--olive);vertical-align:1px;}
+label.style ul li.con::before{background:var(--accent);}
+label.style .check{position:absolute;top:10px;right:10px;background:var(--accent);color:var(--accent-ink);font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;padding:3px 8px;display:none;}
+label.style:has(input:checked) .check{display:block;}
+
+/* map diagrams */
+.maps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.maps svg{width:100%;height:auto;display:block;background:var(--surface2);border-bottom:1px solid var(--line);}
+label.map{display:block;background:var(--surface);border:1px solid var(--line);cursor:pointer;position:relative;}
+label.map input{position:absolute;opacity:0;pointer-events:none;}
+label.map:has(input:checked){border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-1px;}
+label.map:has(input:focus-visible){outline:2px solid var(--focus);}
+label.map .body{padding:12px 14px 14px;}
+label.map .t{font-weight:600;}
+label.map .d{color:var(--muted);font-size:15px;margin-top:4px;}
+
+/* scale */
+.scale{display:flex;gap:6px;flex-wrap:wrap;}
+.scale label{flex:1;min-width:64px;text-align:center;padding:10px 6px;background:var(--surface);border:1px solid var(--line);cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:13px;position:relative;}
+.scale label input{position:absolute;opacity:0;pointer-events:none;}
+.scale label:has(input:checked){border-color:var(--accent);background:var(--accent);color:var(--accent-ink);}
+.scale label:has(input:focus-visible){outline:2px solid var(--focus);}
+.scale-ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px;}
+
+textarea,input[type=text]{width:100%;font:inherit;font-size:16px;padding:10px 12px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:0;}
+textarea{min-height:96px;resize:vertical;}
+textarea:focus,input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;}
+
+/* note blocks */
+.nota{border-left:3px solid var(--hazard);padding:10px 14px;background:var(--surface);margin:0 0 22px;max-width:70ch;font-size:15px;}
+.nota b{font-weight:600;}
+
+/* footer actions */
+.acciones{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:14px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:32px;}
+button{font:inherit;font-weight:600;font-size:16px;padding:12px 22px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer;}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+button.ghost{background:transparent;color:var(--ink);}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+button[disabled]{opacity:.5;cursor:default;}
+.estado{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);}
+.estado.ok{color:var(--olive);}
+.estado.err{color:var(--accent);}
+.resumen{display:none;margin-top:14px;}
+.resumen.show{display:block;}
+.resumen textarea{font-family:"IBM Plex Mono",monospace;font-size:13px;min-height:200px;}
+@media (max-width:640px){.concept{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="hazard"></div>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">Brief de diseño · juego de mesa digital cooperativo · propuesta y encuesta</div>
+  <h1>Última <span>Ronda</span></h1>
+  <p class="lead">Nombre provisional para tu juego de supervivencia inspirado en <em>The Walking Dead</em>: tablero octogonal, hasta 10 jugadores, cada uno desde su móvil, con cartas de zombis, hordas, crafteo y una misión de equipo que puede terminar con alguien jugando como zombi.</p>
+  <p class="lead">Abajo tienes cuatro direcciones visuales dibujadas como maqueta, dos lecturas del tablero octogonal y una encuesta de 11 apartados y 41 preguntas. Cada respuesta se guarda al pulsar «Guardar respuestas» y yo la leo desde el proyecto para escribir el documento de diseño definitivo.</p>
+
+  <div class="concept" aria-label="Resumen del concepto tal y como lo entendí">
+    <div><div class="k">Género</div><div class="v">Juego de mesa digital, cooperativo, supervivencia zombi, 2,5D</div></div>
+    <div><div class="k">Plataformas</div><div class="v">Android e iOS. Un móvil por jugador, hasta 10 jugadores</div></div>
+    <div><div class="k">Tablero</div><div class="v">Mapa octogonal con casillas, tirada de dados para moverse</div></div>
+    <div><div class="k">Cartas</div><div class="v">Zombis, hordas, objetos, crafteo, personaje, misión de equipo</div></div>
+    <div><div class="k">Crafteo</div><div class="v">Bidón + vehículo = más casillas por tirada durante X turnos</div></div>
+    <div><div class="k">Contagio</div><div class="v">Misiones «sin contagio», modo hardcore y modo jugador zombi</div></div>
+  </div>
+</header>
+
+<div class="progress" id="progress"><span>Respondidas</span><div class="bar"><i id="bar"></i></div><b id="count">0 / 0</b></div>
+
+<form id="form" autocomplete="off"></form>
+
+<div class="acciones">
+  <button type="button" class="primary" id="guardar">Guardar respuestas</button>
+  <button type="button" class="ghost" id="ver">Ver resumen</button>
+  <span class="estado" id="estado">Se guarda un borrador en este dispositivo mientras respondes.</span>
+</div>
+<div class="resumen" id="resumen"><p class="small muted">Copia de tus respuestas en texto. Si el guardado en la nube no está disponible, pégamelo en el chat.</p><textarea id="resumen-txt" readonly></textarea></div>
+</div>
+
+<script>
+/* ---------- helpers de dibujo ---------- */
+function oct(cx,cy,r){const p=[];for(let k=0;k<8;k++){const a=(Math.PI/8)+k*Math.PI/4;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+function hex(cx,cy,r){const p=[];for(let k=0;k<6;k++){const a=k*Math.PI/3;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+const surv=(x,y,c,hl)=>`<circle cx="${x}" cy="${y}" r="9" fill="${c}"/>${hl?`<ellipse cx="${x-3}" cy="${y-4}" rx="3" ry="2" fill="#fff" opacity=".7"/>`:''}<circle cx="${x}" cy="${y-13}" r="4" fill="${c}"/>`;
+const zomb=(x,y,c)=>`<path d="M${x-8} ${y+8} l3-14 l-4-6 l5 2 l3-4 l3 4 l5-2 l-4 6 l3 14z" fill="${c}"/>`;
+
+/* Maquetas de estilo: misma escena (loseta octogonal, superviviente, zombi, carta) en cuatro tratamientos */
+const MOCK={
+tinta:`<svg viewBox="0 0 300 200" role="img" aria-label="Maqueta estilo tinta y viñeta">
+<defs><pattern id="ht" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.4" fill="#111"/></pattern></defs>
+<rect width="300" height="200" fill="#F4F1E8"/>
+<rect x="0" y="0" width="300" height="200" fill="url(#ht)" opacity=".18"/>
+<polygon points="${oct(105,105,62)}" fill="#fff" stroke="#111" stroke-width="4"/>
+<polygon points="${oct(105,105,48)}" fill="none" stroke="#111" stroke-width="1.5" stroke-dasharray="3 3"/>
+<path d="M60 130 q40 -30 90 0" stroke="#111" stroke-width="2" fill="none"/>
+${surv(88,98,'#111')}
+${zomb(130,104,'#111')}
+<circle cx="134" cy="92" r="4" fill="#C1272D"/>
+<rect x="196" y="38" width="80" height="124" fill="#fff" stroke="#111" stroke-width="4"/>
+<rect x="196" y="38" width="80" height="22" fill="#C1272D"/>
+<rect x="206" y="70" width="60" height="44" fill="url(#ht)" stroke="#111" stroke-width="2"/>
+<rect x="206" y="122" width="60" height="4" fill="#111"/><rect x="206" y="132" width="42" height="4" fill="#111"/><rect x="206" y="142" width="52" height="4" fill="#111"/>
+<text x="16" y="186" font-family="Impact,sans-serif" font-size="20" fill="#111">¡RUIDO!</text>
+</svg>`,
+crudo:`<svg viewBox="0 0 300 200" role="img" aria-label="Maqueta estilo crudo fotorealista">
+<defs>
+<radialGradient id="lz" cx=".4" cy=".35"><stop offset="0" stop-color="#8b8f78"/><stop offset="1" stop-color="#2b2f27"/></radialGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c211d"/><stop offset="1" stop-color="#0b0d0b"/></linearGradient>
+<filter id="grain"><feTurbulence baseFrequency=".9" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .35 0"/><feBlend in="SourceGraphic" mode="multiply"/></filter>
+</defs>
+<rect width="300" height="200" fill="url(#sky)"/>
+<ellipse cx="105" cy="60" rx="90" ry="70" fill="#c9b98a" opacity=".08"/>
+<polygon points="${oct(105,105,62)}" fill="url(#lz)" stroke="#6b6350" stroke-width="2"/>
+<polygon points="${oct(105,105,62)}" fill="#000" opacity=".25" filter="url(#grain)"/>
+<path d="M70 120 l20 -8 l15 10 l25 -12" stroke="#4a3d2a" stroke-width="3" fill="none" opacity=".7"/>
+${surv(88,98,'#b9a984',true)}
+${zomb(130,104,'#4f5a3a')}
+<circle cx="134" cy="92" r="3.5" fill="#7a1a12"/>
+<rect x="196" y="38" width="80" height="124" rx="3" fill="#2a2823" stroke="#6b5a3c" stroke-width="2"/>
+<rect x="202" y="44" width="68" height="50" fill="#3d3a30"/>
+<rect x="202" y="44" width="68" height="50" fill="#000" opacity=".3" filter="url(#grain)"/>
+<rect x="202" y="102" width="68" height="3" fill="#b9a984" opacity=".8"/><rect x="202" y="112" width="50" height="3" fill="#8d846c"/><rect x="202" y="122" width="58" height="3" fill="#8d846c"/>
+<rect x="202" y="140" width="30" height="14" fill="#7a1a12"/>
+<rect width="300" height="200" fill="#000" opacity=".22" filter="url(#grain)"/>
+</svg>`,
+minis:`<svg viewBox="0 0 300 200" role="img" aria-label="Maqueta estilo miniaturas de mesa">
+<defs>
+<linearGradient id="wood" x1="0" x2="1"><stop offset="0" stop-color="#7a4a24"/><stop offset=".5" stop-color="#8f5a2c"/><stop offset="1" stop-color="#6f421f"/></linearGradient>
+<radialGradient id="lamp" cx=".35" cy=".2" r=".9"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".45"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+</defs>
+<rect width="300" height="200" fill="url(#wood)"/>
+<g stroke="#5c3416" stroke-width="1" opacity=".5"><path d="M0 40 h300 M0 95 h300 M0 150 h300"/></g>
+<rect width="300" height="200" fill="url(#lamp)"/>
+<polygon points="${oct(108,110,62)}" fill="#6b4a2a" opacity=".5" transform="translate(4,6)"/>
+<polygon points="${oct(105,105,62)}" fill="#c9a26b" stroke="#a8814d" stroke-width="3"/>
+<polygon points="${oct(105,105,58)}" fill="none" stroke="#e7cf9f" stroke-width="2" opacity=".7"/>
+<rect x="72" y="80" width="26" height="22" fill="#9a8a6a" stroke="#6a5d45"/><path d="M70 80 l15 -10 l15 10z" fill="#7a3c2a"/>
+<path d="M95 130 q30 -20 45 -35" stroke="#6b5232" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/>
+<ellipse cx="90" cy="112" rx="11" ry="4" fill="#000" opacity=".25"/>
+${surv(90,100,'#2e6fd1',true)}
+<ellipse cx="132" cy="114" rx="11" ry="4" fill="#000" opacity=".25"/>
+${zomb(132,106,'#6f9a3a')}<ellipse cx="128" cy="96" rx="2.5" ry="1.5" fill="#fff" opacity=".6"/>
+<rect x="200" y="42" width="80" height="124" rx="6" fill="#3b2a1b" opacity=".5" transform="translate(3,4)"/>
+<rect x="196" y="38" width="80" height="124" rx="6" fill="#f1e6cf" stroke="#b39463" stroke-width="2"/>
+<rect x="203" y="45" width="66" height="48" rx="3" fill="#7f9f6a"/>
+<rect x="203" y="101" width="66" height="4" rx="2" fill="#5a4630"/><rect x="203" y="111" width="46" height="4" rx="2" fill="#8c7757"/><rect x="203" y="121" width="56" height="4" rx="2" fill="#8c7757"/>
+<circle cx="214" cy="148" r="8" fill="#d4a13a" stroke="#8a6a26"/><text x="211" y="152" font-family="sans-serif" font-size="10" fill="#3b2a1b">3</text>
+</svg>`,
+lowpoly:`<svg viewBox="0 0 300 200" role="img" aria-label="Maqueta estilo low-poly atardecer">
+<defs><linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f39c4f"/><stop offset=".6" stop-color="#c2536a"/><stop offset="1" stop-color="#5d3a7a"/></linearGradient></defs>
+<rect width="300" height="200" fill="url(#sun)"/>
+<circle cx="230" cy="52" r="26" fill="#ffd27a"/>
+<polygon points="0,200 60,120 120,170 180,110 240,160 300,120 300,200" fill="#3f2a5a"/>
+<g stroke="#1e6f6b" stroke-width="1.5" stroke-linejoin="round">
+<polygon points="105,43 152,62 105,105" fill="#2e8f89"/>
+<polygon points="152,62 167,105 105,105" fill="#26807b"/>
+<polygon points="167,105 152,148 105,105" fill="#1f6f6b"/>
+<polygon points="152,148 105,167 105,105" fill="#2a857f"/>
+<polygon points="105,167 58,148 105,105" fill="#33978f"/>
+<polygon points="58,148 43,105 105,105" fill="#3aa79d"/>
+<polygon points="43,105 58,62 105,105" fill="#2e8f89"/>
+<polygon points="58,62 105,43 105,105" fill="#3aa79d"/>
+</g>
+<polygon points="76,88 96,80 100,98 80,104" fill="#e9c46a"/><polygon points="80,104 100,98 100,110 80,116" fill="#b58a3c"/>
+${surv(120,110,'#f4f1de')}
+${zomb(140,124,'#7bd389')}
+<rect x="196" y="38" width="80" height="124" rx="10" fill="#f4f1de"/>
+<rect x="196" y="38" width="80" height="60" rx="10" fill="#3aa79d"/><rect x="196" y="70" width="80" height="28" fill="#3aa79d"/>
+<polygon points="206,98 236,66 266,98" fill="#e9c46a"/>
+<rect x="206" y="108" width="60" height="5" rx="2.5" fill="#3f2a5a"/><rect x="206" y="120" width="40" height="5" rx="2.5" fill="#8b7aa6"/><rect x="206" y="132" width="50" height="5" rx="2.5" fill="#8b7aa6"/>
+</svg>`
+};
+
+/* Diagramas de tablero */
+function mapHexOct(){
+  const r=13, w=Math.sqrt(3)*r, cx=150, cy=100, R=92; let s='';
+  for(let row=-7;row<=7;row++){for(let col=-9;col<=9;col++){
+    const x=cx+col*w+(row%2?w/2:0), y=cy+row*r*1.5;
+    // inside octagon test: |x|<=R*cos(22.5) and |x|+|y| <= R*(cos+sin)
+    const ax=Math.abs(x-cx), ay=Math.abs(y-cy), c=R*Math.cos(Math.PI/8), d=R*(Math.cos(Math.PI/8)+Math.sin(Math.PI/8));
+    if(ax<=c&&ay<=c&&ax+ay<=d){
+      const dist=Math.hypot(ax,ay); const fill=dist<20?'var(--accent)':(dist>78?'var(--muted)':'var(--surface)');
+      s+=`<polygon points="${hex(x,y,r-1).split(' ').map(p=>{const[a,b]=p.split(',');return a+','+b}).join(' ')}" fill="${fill}" stroke="var(--line)" stroke-width="1" transform="rotate(30 ${x} ${y})" opacity="${dist<20?'.9':'1'}"/>`;
+    }}}
+  return `<svg viewBox="0 0 300 200" role="img" aria-label="Mapa con forma de octágono compuesto por casillas hexagonales"><polygon points="${oct(150,100,96)}" fill="none" stroke="var(--ink)" stroke-width="2"/>${s}</svg>`;
+}
+function mapOctSquare(){
+  const a=22; let s=''; const cx=150,cy=100;
+  for(let i=-4;i<=4;i++)for(let j=-3;j<=3;j++){
+    const x=cx+i*a*2.05, y=cy+j*a*2.05; const dist=Math.hypot(i,j);
+    if(Math.abs(i)+Math.abs(j)>5.5) continue;
+    const fill=dist<1?'var(--accent)':(dist>3.6?'var(--muted)':'var(--surface)');
+    s+=`<polygon points="${oct(x,y,a)}" fill="${fill}" stroke="var(--line)" stroke-width="1.2" opacity="${dist<1?'.9':'1'}"/>`;
+    // small squares between octagons
+    s+=`<rect x="${x+a*0.72}" y="${y+a*0.72}" width="${a*0.6}" height="${a*0.6}" fill="var(--hazard)" opacity=".55" transform="rotate(45 ${x+a*1.02} ${y+a*1.02})"/>`;
+  }
+  return `<svg viewBox="0 0 300 200" role="img" aria-label="Casillas octogonales con huecos cuadrados entre ellas">${s}</svg>`;
+}
+
+/* ---------- contenido de la encuesta ---------- */
+const S=[
+{id:'estilo',titulo:'Dirección visual',intro:'La misma escena dibujada cuatro veces: una loseta octogonal, un superviviente, un zombi y una carta. Elige la que quieres ver en el móvil. Las maquetas son bocetos de dirección, no arte final.',
+ preguntas:[
+  {id:'estilo_visual',tipo:'estilos',texto:'¿Qué dirección visual quieres para el juego?',opciones:[
+   {v:'tinta',l:'A',t:'Tinta y viñeta',mock:MOCK.tinta,d:'Blanco y negro con trama de semitono y un único color de acento, el rojo. El 2,5D se resuelve con recortes de cartón: cada pieza es una viñeta de pie sobre el tablero. Homenaje directo al cómic original de Kirkman y Adlard sin copiar personajes.',pros:['Muy legible en pantallas pequeñas','Barato de producir y de ampliar','Identidad inconfundible'],cons:['Menos espectacular en tráilers']},
+   {v:'crudo',l:'B',t:'Crudo fotorealista',mock:MOCK.crudo,d:'La textura de la serie: verdes apagados, óxido, grano de película, luz volumétrica al atardecer. Piezas modeladas como miniaturas realistas y cartas que parecen documentos encontrados.',pros:['Es lo que espera el fan de la serie','Tráilers y capturas potentes'],cons:['Caro en arte y en rendimiento en móviles antiguos','Legibilidad más difícil con 10 piezas en pantalla'],rec:false},
+   {v:'minis',l:'C',t:'Miniaturas de mesa',mock:MOCK.minis,d:'El tablero se ve como un tablero real: cartón con relieve sobre una mesa de madera, figuras de plástico pintado con brillo, cartas con canto desgastado y fichas de madera. Es la opción que mejor casa con la vista de mesa por cámara.',pros:['Sensación de juego de mesa físico','Encaja perfecto con realidad aumentada','Estilizado pero adulto'],cons:['Hay que cuidar mucho la iluminación para que no parezca juguete'],rec:true},
+   {v:'lowpoly',l:'D',t:'Low-poly atardecer',mock:MOCK.lowpoly,d:'Geometría plana y paleta corta de crepúsculo. Cada loseta es un puñado de triángulos y las piezas son sólidos limpios. Muy fluido en cualquier móvil y fácil de animar.',pros:['Máximo rendimiento y tamaño de descarga mínimo','Rápido de producir'],cons:['Puede quedar demasiado amable para un juego de contagio y hordas']}
+  ]},
+  {id:'tono',tipo:'escala',texto:'¿Cuánto de oscuro y gore quieres el tono?',ayuda:'1 es sugerido y apto para todos los públicos; 5 es sangre explícita y desmembramientos en las animaciones.',min:'Sugerido',max:'Explícito',n:5},
+  {id:'referencias',tipo:'multi',texto:'¿Qué referencias visuales quieres que tenga en cuenta?',opciones:[
+   {v:'comic',t:'El cómic de Kirkman y Adlard'},{v:'serie',t:'La serie de AMC (fotografía y vestuario)'},{v:'telltale',t:'Videojuego de Telltale (cel-shading)'},{v:'zombicide',t:'Zombicide (juego de mesa físico)'},{v:'dead_of_winter',t:'Dead of Winter (juego de mesa, narrativo)'},{v:'otra',t:'Otra, la escribo en comentarios'}
+  ]}
+ ]},
+{id:'tablero',titulo:'Tablero octogonal',intro:'«Octogonal» admite dos lecturas y cambian bastante el juego. La primera es un mapa con forma de octágono lleno de casillas hexagonales, que permite moverse en seis direcciones sin distancias raras. La segunda es que cada casilla sea un octágono, lo que deja huecos cuadrados entre ellas que pueden ser callejones, alcantarillas o puntos de aparición de zombis.',
+ preguntas:[
+  {id:'tablero_forma',tipo:'mapas',texto:'¿Cuál de las dos lecturas es la tuya?',opciones:[
+   {v:'octagono_hex',t:'Mapa octogonal de casillas hexagonales',d:'Forma general octogonal, movimiento en seis direcciones. El centro rojo es la zona segura inicial y el borde gris es donde entran las hordas.',svg:mapHexOct(),rec:true},
+   {v:'casillas_oct',t:'Casillas octogonales con huecos',d:'Cada casilla es un octágono; movimiento en ocho direcciones. Los cuadrados amarillos entre casillas son huecos con función propia.',svg:mapOctSquare()}
+  ]},
+  {id:'tablero_tipo',tipo:'single',texto:'¿Cómo se construye el mapa de cada partida?',opciones:[
+   {v:'fijo',t:'Mapa fijo por escenario',d:'Cada misión trae su mapa dibujado a mano. Más control narrativo, menos rejugabilidad.'},
+   {v:'losetas',t:'Losetas que se descubren al explorar',d:'El mapa se revela al entrar en cada zona con losetas al azar. Máxima rejugabilidad, encaja con el crafteo y la exploración.',rec:true},
+   {v:'mixto',t:'Mixto: núcleo fijo y bordes aleatorios',d:'El refugio y el objetivo son fijos; el camino entre ambos cambia.'}
+  ]},
+  {id:'tablero_tamano',tipo:'single',texto:'¿Tamaño del tablero para 10 jugadores?',opciones:[
+   {v:'pequeno',t:'Pequeño (unas 60 casillas)',d:'Partidas rápidas, mucho roce con la horda.'},
+   {v:'medio',t:'Medio (unas 120 casillas)',d:'Equilibrio entre exploración y tensión.',rec:true},
+   {v:'grande',t:'Grande y escalable según el número de jugadores',d:'Más casillas cuantos más jugadores. Más complejo de equilibrar.'}
+  ]},
+  {id:'camara',tipo:'single',texto:'¿Cómo se ve el tablero en el móvil?',opciones:[
+   {v:'iso_fija',t:'Isométrica fija con zoom',d:'Vista clásica 2,5D. Simple de aprender y de optimizar.',rec:true},
+   {v:'libre',t:'Cámara libre: rotar, inclinar y acercar',d:'Más inmersivo, más difícil de leer con muchas piezas.'},
+   {v:'cenital',t:'Cenital con paralaje',d:'Vista desde arriba con las piezas en relieve. Es la más legible con 10 jugadores.'}
+  ]}
+ ]},
+{id:'cartas',titulo:'Cartas',intro:'Las cartas son la mitad del juego y la parte que más se ve en un móvil en vertical. Decidimos su lenguaje visual y cómo se sostienen en la mano.',
+ preguntas:[
+  {id:'carta_estilo',tipo:'single',texto:'¿Qué aspecto tienen las cartas?',opciones:[
+   {v:'expediente',t:'Expediente y polaroid',d:'Fotos con clip, notas a mano, sellos de «infectado». Documentos que alguien encontró en un refugio.',rec:true},
+   {v:'clasica',t:'Carta de juego de mesa clásica',d:'Marco, ilustración, texto de reglas, iconos. Lo que espera un jugador de mesa.'},
+   {v:'minimal',t:'Minimalista con iconos grandes',d:'Pensadas para leerse en un segundo en pantalla pequeña.'}
+  ]},
+  {id:'carta_tipos',tipo:'multi',texto:'¿Qué mazos quieres en la primera versión?',opciones:[
+   {v:'zombi',t:'Zombis (tipos: caminante, corredor, acorazado, niño)'},{v:'horda',t:'Hordas (eventos de fin de ronda)'},{v:'objeto',t:'Objetos y armas con durabilidad'},{v:'crafteo',t:'Recetas de crafteo'},{v:'evento',t:'Eventos del mundo (clima, otros supervivientes, ruido)'},{v:'personaje',t:'Personajes'},{v:'mision',t:'Misiones de equipo'},{v:'secreto',t:'Objetivos secretos personales (posible traidor)'}
+  ]},
+  {id:'mano',tipo:'single',texto:'¿Cuántas cartas puede tener un jugador en la mano?',opciones:[{v:'3',t:'3 cartas: decisiones rápidas'},{v:'5',t:'5 cartas',rec:true},{v:'7',t:'7 cartas: más combos, partidas más largas'},{v:'ilimitado',t:'Sin límite, con peso de inventario'}]}
+ ]},
+{id:'movimiento',titulo:'Movimiento y dados',intro:'Tu ejemplo del bidón más vehículo ya define algo: la tirada de dados es la base y los objetos la multiplican. Falta decidir qué dados.',
+ preguntas:[
+  {id:'dados',tipo:'single',texto:'¿Qué tirada mueve al personaje?',opciones:[
+   {v:'1d6',t:'Un dado de seis caras',d:'Sencillo. Un vehículo suma o multiplica el resultado.'},
+   {v:'2d6',t:'Dos dados de seis caras',d:'Curva de campana: menos resultados extremos.'},
+   {v:'custom',t:'Dados personalizados con caras especiales',d:'Caras de pasos, de ruido y de mordisco. La tirada mueve y a la vez genera peligro. Es muy visual en 2,5D.',rec:true},
+   {v:'pa',t:'Sin dados: puntos de acción fijos por personaje',d:'Más táctico, menos azar. Cambia bastante el espíritu de «juego de mesa».'}
+  ]},
+  {id:'vehiculos',tipo:'single',texto:'¿Cómo funcionan los vehículos (moto, coche) tras craftearlos con gasolina?',opciones:[
+   {v:'turnos',t:'Duran X turnos y luego se agotan',d:'Tal y como lo describiste. Simple y claro.',rec:true},
+   {v:'gasolina',t:'Consumen gasolina por casilla recorrida',d:'Gestión de recurso continua. Puedes repostar con más bidones.'},
+   {v:'averia',t:'Duran hasta que una tirada los averíe',d:'Azar y tensión. Se reparan con piezas.'}
+  ]},
+  {id:'ruido',tipo:'single',texto:'¿El movimiento genera ruido que atrae zombis?',opciones:[{v:'si_vehiculo',t:'Sí, sobre todo los vehículos y las armas de fuego',rec:true},{v:'si_todo',t:'Sí, todo movimiento suma al contador de ruido'},{v:'no',t:'No, el ruido no existe como mecánica'}]}
+ ]},
+{id:'combate',titulo:'Zombis y hordas',intro:'Cómo se pelea, cómo llegan las hordas y cómo escala el peligro cuando hay 10 personas en el tablero.',
+ preguntas:[
+  {id:'combate',tipo:'single',texto:'¿Cómo se resuelve un combate?',opciones:[
+   {v:'dados_vs',t:'Tirada del jugador contra la fuerza del zombi',d:'Cada tipo de zombi tiene un número a superar. Las armas suman.',rec:true},
+   {v:'cartas',t:'Jugar cartas de arma con durabilidad',d:'Sin tirada: el arma decide y se desgasta.'},
+   {v:'mixto',t:'Tirada más carta de arma',d:'Máximo detalle, más lento con 10 jugadores.'}
+  ]},
+  {id:'hordas',tipo:'single',texto:'¿Cuándo aparecen las hordas?',opciones:[
+   {v:'fin_ronda',t:'Carta de horda al final de cada ronda',d:'Cuando han jugado todos, se roba una carta que mueve o crea hordas.',rec:true},
+   {v:'ruido',t:'Cuando el contador de ruido llega al tope'},
+   {v:'ambas',t:'Ambas: ronda y ruido'}
+  ]},
+  {id:'escalado',tipo:'single',texto:'¿Cómo escala la dificultad con más jugadores?',opciones:[{v:'mas_zombis',t:'Más zombis por carta de horda',rec:true},{v:'mas_rapido',t:'Las hordas se mueven más deprisa'},{v:'mapa',t:'El mapa crece y separa al grupo'}]}
+ ]},
+{id:'crafteo',titulo:'Crafteo',intro:'Bidón más vehículo es la receta ejemplo. Definimos si las recetas son fijas o si el sistema es más libre.',
+ preguntas:[
+  {id:'recetas',tipo:'single',texto:'¿Cómo se craftea?',opciones:[
+   {v:'fijas',t:'Recetas fijas visibles en un libro',d:'Todos saben qué se puede hacer. Fácil de aprender.',rec:true},
+   {v:'descubrir',t:'Recetas que se descubren al combinar',d:'Sorpresa y experimentación. Difícil de equilibrar.'},
+   {v:'etiquetas',t:'Sistema libre por etiquetas',d:'Cualquier «inflamable» más cualquier «recipiente» hace una bomba molotov.'}
+  ]},
+  {id:'crafteo_donde',tipo:'single',texto:'¿Dónde se puede craftear?',opciones:[{v:'cualquier',t:'En cualquier casilla, gastando la acción'},{v:'refugio',t:'Solo en el refugio o en un taller',rec:true},{v:'cooperativo',t:'Entre dos jugadores adyacentes, sumando inventarios'}]},
+  {id:'crafteo_ejemplos',tipo:'texto',texto:'Escribe otras recetas que ya tengas en la cabeza',ayuda:'Una por línea. Ejemplo: tubería + trapo + gasolina = antorcha que ahuyenta zombis dos turnos.'}
+ ]},
+{id:'contagio',titulo:'Contagio y jugador zombi',intro:'La mecánica más original de tu propuesta. Un jugador contagiado que pasa a jugar en contra cambia el objetivo de la partida y hay que decidir cuánto poder tiene.',
+ preguntas:[
+  {id:'contagio_regla',tipo:'single',texto:'¿Qué pasa al recibir un mordisco?',opciones:[
+   {v:'temporizador',t:'Cuenta atrás de N turnos para conseguir cura',d:'El equipo puede salvarlo con antibióticos o amputación. Si no llega, se convierte.',rec:true},
+   {v:'inmediato',t:'Conversión inmediata',d:'Brutal y rápido. Es el modo hardcore que describiste.'},
+   {v:'por_mision',t:'Lo decide la carta de misión',d:'Cada misión fija su regla: sin contagios, con cuenta atrás o hardcore.'}
+  ]},
+  {id:'zombi_poderes',tipo:'multi',texto:'¿Qué puede hacer el jugador zombi?',opciones:[
+   {v:'mover_horda',t:'Mover una horda en su turno'},{v:'contagiar',t:'Contagiar al contacto con una tirada'},{v:'ocultar',t:'Ocultarse entre zombis normales (los demás no saben cuál es)'},{v:'oler',t:'Oler: ver cartas de la mano de un jugador'},{v:'reclutar',t:'Reclutar: los jugadores que contagie se unen a su equipo'},{v:'evolucionar',t:'Evolucionar con cada contagio (más rápido, más fuerte)'}
+  ]},
+  {id:'zombi_victoria',tipo:'single',texto:'¿Cómo gana el jugador zombi?',opciones:[{v:'todos',t:'Contagiando a todo el equipo'},{v:'mision',t:'Impidiendo la misión antes del límite de rondas',rec:true},{v:'mayoria',t:'Contagiando a la mitad del equipo'}]},
+  {id:'traidor',tipo:'single',texto:'¿Quieres además un traidor oculto desde el inicio?',ayuda:'Alguien con un objetivo secreto que sabotea sin estar contagiado. Añade desconfianza pero cambia el tono cooperativo.',opciones:[{v:'si',t:'Sí, como modo opcional'},{v:'no',t:'No, el único enemigo interno es el contagiado',rec:true},{v:'luego',t:'Más adelante, en una ampliación'}]}
+ ]},
+{id:'misiones',titulo:'Misiones de equipo',intro:'Una carta de misión compartida al inicio. Definimos cuántas hay, qué condiciones traen y cuánto dura una partida.',
+ preguntas:[
+  {id:'mision_condiciones',tipo:'multi',texto:'¿Qué condiciones especiales quieres en las misiones?',opciones:[
+   {v:'sin_contagio',t:'Solo se cumple si nadie se contagia'},{v:'hardcore',t:'Modo hardcore: contagio sin cura'},{v:'tiempo',t:'Límite de rondas (llega el invierno, se acaba la comida)'},{v:'escolta',t:'Escoltar a un personaje no jugador'},{v:'recolectar',t:'Recolectar N objetos concretos'},{v:'llegar',t:'Llegar todos juntos a un punto del mapa'},{v:'ramificada',t:'Misión en capítulos con decisiones'}
+  ]},
+  {id:'duracion',tipo:'single',texto:'¿Cuánto debe durar una partida de 10 jugadores?',opciones:[{v:'30',t:'Unos 30 minutos'},{v:'60',t:'Alrededor de una hora',rec:true},{v:'90',t:'90 minutos o más, tipo campaña'}]},
+  {id:'campana',tipo:'single',texto:'¿Quieres campaña con progreso entre partidas?',opciones:[{v:'si',t:'Sí, el refugio y los personajes evolucionan'},{v:'no',t:'No, cada partida es independiente',rec:true},{v:'luego',t:'Más adelante'}]}
+ ]},
+{id:'personajes',titulo:'Personajes',intro:'Aptitudes, habilidades, pros y contras. Y una decisión legal que conviene tomar ya.',
+ preguntas:[
+  {id:'licencia',tipo:'single',texto:'¿Personajes de la serie o personajes propios?',ayuda:'The Walking Dead es una marca registrada de Skybound y AMC. Usar sus nombres, caras o logotipo exige licencia. Un juego «inspirado en» con personajes originales y estética propia no la necesita.',opciones:[
+   {v:'propios',t:'Personajes originales inspirados en los arquetipos',d:'El sheriff, la de la katana, el cazador con ballesta, la médica, el niño. Sin nombres ni caras reales.',rec:true},
+   {v:'licencia',t:'Quiero intentar conseguir la licencia oficial',d:'Realista solo con presupuesto y un socio editor. Lo tendremos en cuenta en el plan.'},
+   {v:'parodia',t:'Guiños y parodia evidente',d:'Zona gris legal. No lo recomiendo para una tienda de aplicaciones.'}
+  ]},
+  {id:'n_personajes',tipo:'single',texto:'¿Cuántos personajes en la primera versión?',opciones:[{v:'10',t:'10, uno por jugador máximo'},{v:'12',t:'12, para que haya elección',rec:true},{v:'16',t:'16 o más'}]},
+  {id:'reparto',tipo:'single',texto:'¿Cómo se reparten los personajes?',opciones:[{v:'eleccion',t:'Cada jugador elige libremente'},{v:'azar',t:'Al azar, dos cartas y te quedas una',rec:true},{v:'draft',t:'Draft: se pasan las cartas por la mesa'}]},
+  {id:'contras',tipo:'multi',texto:'¿Qué tipo de contras quieres en los personajes?',opciones:[{v:'fisicos',t:'Físicos: cojera, mala vista, poca resistencia'},{v:'mentales',t:'Mentales: pánico ante hordas, desconfianza'},{v:'sociales',t:'Sociales: no comparte inventario, no puede curar'},{v:'adiccion',t:'Adicción: necesita un objeto cada N turnos'}]}
+ ]},
+{id:'jugadores',titulo:'Jugadores, móviles y mesa',intro:'Hasta 10 jugadores, cada uno con su móvil. La gran duda es qué se ve en la mesa. Te planteo las cuatro formas de resolverlo con sus costes reales.',
+ preguntas:[
+  {id:'mesa',tipo:'single',texto:'¿Qué hay en el centro de la mesa?',opciones:[
+   {v:'tv',t:'Una pantalla compartida (tablet, TV por Chromecast o AirPlay, o un móvil apoyado)',d:'El tablero completo se ve en grande y cada móvil es la mano privada, los dados y el personaje. Es la opción más fiable, funciona a la primera y no exige sujetar el móvil.',rec:true},
+   {v:'ar',t:'Realidad aumentada: cada móvil apunta con la cámara a un marcador impreso',d:'Espectacular en demo. En la práctica cansa sujetar el móvil una hora, exige buena luz, móviles recientes y meses de desarrollo extra. Lo recomiendo como modo opcional, nunca como único.'},
+   {v:'solo_moviles',t:'Nada: cada móvil muestra el tablero completo',d:'Funciona también a distancia. Se pierde parte de la sensación de mesa.'},
+   {v:'fisico',t:'Tablero físico impreso más app',d:'La app lleva cartas, dados y reglas; las piezas son reales. Modelo híbrido tipo juego de mesa con aplicación.'}
+  ]},
+  {id:'ar_interes',tipo:'escala',texto:'Aparte de lo anterior, ¿cuánto te interesa la realidad aumentada como modo extra?',min:'Nada',max:'Imprescindible',n:5},
+  {id:'online',tipo:'single',texto:'¿Se juega solo en la misma sala o también a distancia?',opciones:[{v:'local',t:'Solo misma sala, conexión local por wifi'},{v:'ambos',t:'Misma sala y también online con sala por código',rec:true},{v:'online',t:'Principalmente online'}]},
+  {id:'min_jugadores',tipo:'single',texto:'¿Mínimo de jugadores?',opciones:[{v:'1',t:'1, con modo solitario'},{v:'2',t:'2',rec:true},{v:'4',t:'4'}]},
+  {id:'turnos',tipo:'single',texto:'¿Cómo se organizan los turnos con 10 personas?',opciones:[{v:'secuencial',t:'Uno tras otro, orden fijo'},{v:'simultaneo',t:'Todos planifican a la vez y se resuelve por iniciativa',d:'Evita esperar 9 turnos. Recomendado para 10 jugadores.',rec:true},{v:'equipos',t:'Por parejas o equipos que actúan juntos'}]}
+ ]},
+{id:'negocio',titulo:'Modelo, tecnología y alcance',intro:'Decisiones que condicionan el plan de producción. Si no tienes opinión, marca «recomiéndame» y lo argumento en el documento.',
+ preguntas:[
+  {id:'monetizacion',tipo:'single',texto:'¿Modelo de negocio?',opciones:[{v:'pago',t:'Pago único'},{v:'gratis_packs',t:'Gratis con packs de misiones y personajes',rec:true},{v:'gratis_cosmetica',t:'Gratis con cosmética (fichas, tableros, dados)'},{v:'recomiendame',t:'Recomiéndame'}]},
+  {id:'motor',tipo:'single',texto:'¿Tecnología?',opciones:[{v:'unity',t:'Unity',d:'Estándar en móviles, mucha AR (AR Foundation), tienda de assets enorme.'},{v:'godot',t:'Godot 4',d:'Gratis y libre, ligero, muy bueno en 2,5D. AR más limitada.'},{v:'web',t:'Web (PWA) con Flutter o React',d:'Sin tiendas, se abre con un enlace. Peor rendimiento 3D y sin AR real.'},{v:'recomiendame',t:'Recomiéndame',rec:true}]},
+  {id:'idiomas',tipo:'multi',texto:'¿Idiomas de lanzamiento?',opciones:[{v:'es',t:'Español'},{v:'en',t:'Inglés'},{v:'pt',t:'Portugués'},{v:'fr',t:'Francés'},{v:'de',t:'Alemán'},{v:'it',t:'Italiano'}]},
+  {id:'prototipo',tipo:'single',texto:'¿Qué quieres que construya primero?',opciones:[{v:'doc',t:'El documento de diseño completo con reglas y cartas'},{v:'proto_web',t:'Un prototipo jugable en el navegador para probar reglas con amigos',rec:true},{v:'arte',t:'Una tabla de arte con la dirección visual elegida'},{v:'todo',t:'Los tres, en ese orden'}]},
+  {id:'nombre',tipo:'texto',texto:'¿Te gusta «Última Ronda» como nombre provisional? Propón otros',ayuda:'Es un nombre de trabajo. Otras ideas: «Los que caminan», «Refugio 8», «Cuarentena».'},
+  {id:'comentarios',tipo:'texto',texto:'Comentarios libres, dudas, cosas que no te he preguntado'}
+ ]}
+];
+
+/* ---------- render ---------- */
+const form=document.getElementById('form');
+let html='';
+S.forEach((sec,i)=>{
+  html+=`<section class="q" id="sec-${sec.id}"><div class="num">${String(i+1).padStart(2,'0')} / ${String(S.length).padStart(2,'0')}</div><h2>${sec.titulo}</h2><p class="intro">${sec.intro}</p>`;
+  sec.preguntas.forEach(q=>{
+    html+=`<div class="pregunta" data-q="${q.id}"><div class="texto">${q.texto}${q.tipo==='multi'?' <span class="pill">varias</span>':''}</div>${q.ayuda?`<div class="ayuda">${q.ayuda}</div>`:''}`;
+    if(q.tipo==='estilos'){
+      html+='<div class="styles">';
+      q.opciones.forEach(o=>{html+=`<label class="style"><input type="radio" name="${q.id}" value="${o.v}"><span class="check">ELEGIDA</span>${o.mock}<div class="body"><span class="letter">${o.l}</span><span class="t">${o.t}</span>${o.rec?' <span class="pill rec">recomendada</span>':''}<div class="d">${o.d}</div><ul>${o.pros.map(p=>`<li>${p}</li>`).join('')}${o.cons.map(p=>`<li class="con">${p}</li>`).join('')}</ul></div></label>`;});
+      html+='</div>';
+    } else if(q.tipo==='mapas'){
+      html+='<div class="maps">';
+      q.opciones.forEach(o=>{html+=`<label class="map"><input type="radio" name="${q.id}" value="${o.v}">${o.svg}<div class="body"><span class="t">${o.t}</span>${o.rec?' <span class="pill rec">recomendada</span>':''}<div class="d">${o.d}</div></div></label>`;});
+      html+='</div>';
+    } else if(q.tipo==='single'||q.tipo==='multi'){
+      const type=q.tipo==='multi'?'checkbox':'radio'; const cols=q.opciones.every(o=>!o.d)?' cols':'';
+      html+=`<div class="opts${cols}">`;
+      q.opciones.forEach(o=>{html+=`<label class="opt"><input type="${type}" name="${q.id}" value="${o.v}"><span><span class="t">${o.t}</span>${o.rec?'<span class="pill rec">recomendada</span>':''}${o.d?`<div class="d">${o.d}</div>`:''}</span></label>`;});
+      html+='</div>';
+    } else if(q.tipo==='escala'){
+      html+='<div class="scale">';
+      for(let k=1;k<=q.n;k++) html+=`<label><input type="radio" name="${q.id}" value="${k}">${k}</label>`;
+      html+=`</div><div class="scale-ends"><span>${q.min}</span><span>${q.max}</span></div>`;
+    } else if(q.tipo==='texto'){
+      html+=`<textarea name="${q.id}" placeholder="Escribe aquí"></textarea>`;
+    }
+    html+='</div>';
+  });
+  html+='</section>';
+});
+form.innerHTML=html;
+
+/* ---------- estado ---------- */
+const ALL=S.flatMap(s=>s.preguntas);
+const KEY='ultima-ronda-borrador';
+function leer(){
+  const fd=new FormData(form), out={};
+  ALL.forEach(q=>{
+    if(q.tipo==='multi'){const v=fd.getAll(q.id); if(v.length) out[q.id]=v;}
+    else {const v=(fd.get(q.id)||'').toString().trim(); if(v) out[q.id]=v;}
+  });
+  return out;
+}
+function aplicar(d){
+  ALL.forEach(q=>{ const v=d[q.id]; if(v==null) return;
+    if(q.tipo==='texto'){const el=form.elements[q.id]; if(el) el.value=v;}
+    else form.querySelectorAll(`[name="${q.id}"]`).forEach(inp=>{inp.checked=Array.isArray(v)?v.includes(inp.value):inp.value===v;});
+  });
+}
+function progreso(){
+  const d=leer(); const n=Object.keys(d).length;
+  document.getElementById('count').textContent=`${n} / ${ALL.length}`;
+  document.getElementById('bar').style.width=(100*n/ALL.length)+'%';
+  try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}
+  return d;
+}
+function etiqueta(q,v){
+  if(!q.opciones) return v;
+  const f=x=>{const o=q.opciones.find(o=>o.v===x);return o?o.t:x;};
+  return Array.isArray(v)?v.map(f).join('; '):f(v);
+}
+function resumen(d){
+  let t=`ÚLTIMA RONDA · respuestas · ${new Date().toLocaleString('es-ES')}\n\n`;
+  S.forEach(s=>{ let bloque=''; s.preguntas.forEach(q=>{ if(d[q.id]!=null) bloque+=`- ${q.texto}\n  → ${etiqueta(q,d[q.id]).replace(/\n/g,'\n    ')}\n`;}); if(bloque) t+=`## ${s.titulo}\n${bloque}\n`;});
+  return t;
+}
+try{const b=localStorage.getItem(KEY); if(b) aplicar(JSON.parse(b));}catch(e){}
+progreso();
+form.addEventListener('input',progreso);
+form.addEventListener('change',progreso);
+
+document.getElementById('ver').addEventListener('click',()=>{
+  const box=document.getElementById('resumen'); box.classList.toggle('show');
+  document.getElementById('resumen-txt').value=resumen(leer());
+});
+
+/* ---------- guardado en la nube (db) ---------- */
+const estado=document.getElementById('estado');
+const btn=document.getElementById('guardar');
+let dbp=(window.claude&&window.claude.use)?window.claude.use('db').catch(()=>null):Promise.resolve(null);
+let idResp; try{idResp=localStorage.getItem(KEY+'-id');}catch(e){}
+if(!idResp){idResp='r-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7); try{localStorage.setItem(KEY+'-id',idResp);}catch(e){}}
+
+dbp.then(db=>{
+  if(!db){ estado.textContent='Guardado en la nube no disponible aquí. Usa «Ver resumen» y pégame el texto.'; return; }
+  db.collection('respuestas').get().then(s=>{ if(s.size) estado.textContent=`${s.size} ${s.size===1?'respuesta guardada':'respuestas guardadas'} hasta ahora.`; }).catch(()=>{});
+});
+
+btn.addEventListener('click',async()=>{
+  const d=leer(); const n=Object.keys(d).length;
+  if(!n){estado.className='estado err';estado.textContent='Marca al menos una respuesta antes de guardar.';return;}
+  btn.disabled=true; estado.className='estado'; estado.textContent='Guardando…';
+  const db=await dbp;
+  if(!db){ btn.disabled=false; estado.className='estado err'; estado.textContent='Sin conexión con la nube. Pulsa «Ver resumen» y pégame el texto en el chat.'; document.getElementById('resumen').classList.add('show'); document.getElementById('resumen-txt').value=resumen(d); return; }
+  try{
+    await db.collection('respuestas').doc(idResp).set({...d, _respondidas:n, _total:ALL.length, _actualizado:new Date().toISOString(), _agente:navigator.userAgent.slice(0,80)});
+    estado.className='estado ok'; estado.textContent=`Guardado. ${n} de ${ALL.length} respuestas en la nube (${new Date().toLocaleTimeString('es-ES')}). Puedes volver y cambiar lo que quieras.`;
+  }catch(e){
+    estado.className='estado err'; estado.textContent='No se pudo guardar ('+(e&&e.code||'error')+'). Prueba otra vez o usa «Ver resumen».';
+  }
+  btn.disabled=false;
+});
+</script>
