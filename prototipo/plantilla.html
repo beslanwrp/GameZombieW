@@ -63,6 +63,10 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
 .modal.peligro{border-top-color:var(--accent)}.modal.bien{border-top-color:var(--olive)}.modal.evento{border-top-color:var(--hazard)}
 #modal-titulo{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:28px;text-transform:uppercase;margin:0 0 8px;line-height:1}
 #modal-cuerpo h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--hazard);margin:14px 0 4px}#modal-cuerpo h4:first-child{margin-top:0}#modal-cuerpo p{margin:0 0 6px;font-size:15px}
+.red{border:1px solid var(--line);padding:14px 16px;margin:0 0 18px;background:var(--surface)}.red h2{font-size:26px;margin-bottom:2px}
+.codigo{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:72px;line-height:1;letter-spacing:.12em;color:var(--hazard);margin:4px 0 8px}
+.lista-sala{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}.lista-sala .jug{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface);border:1px solid var(--line)}.lista-sala .jug .tag{margin-left:auto}.lista-sala .off{opacity:.55}
+.mini-log{margin-top:8px;max-height:120px;overflow:auto}
 #modal-botones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .lista{display:flex;flex-direction:column;gap:6px}.lista button{text-align:left}
 .objetivo{padding:8px;background:var(--surface2);border:1px solid var(--line)}.objetivo div{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -103,6 +107,15 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
   <div class="panel"></div>
   <div class="mano"></div>
 </div>
+
+<div id="p-espera" class="pantalla" hidden>
+  <div class="cabecera"></div>
+  <div class="tablero"><canvas></canvas><button class="encuadrar">Ver todo</button></div>
+  <div class="panel"></div>
+  <div class="mano"></div>
+</div>
+
+<div id="p-sala" class="pantalla" hidden><div class="hazard"></div><div class="cont"></div></div>
 
 <div id="p-fin" class="pantalla" hidden><div class="hazard"></div><div class="cont"></div></div>
 

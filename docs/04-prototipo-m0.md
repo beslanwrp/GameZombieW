@@ -4,6 +4,17 @@ Prototipo jugable en el navegador para probar las reglas del documento de diseñ
 
 ## Cómo probarlo
 
+### Cada jugador en su móvil (recomendado)
+
+1. En un portátil con Node 18 o superior, dentro del repositorio: `node prototipo/servidor.mjs`. Imprime una dirección del tipo `http://192.168.1.20:8080`.
+2. Cada jugador abre esa dirección en su móvil (misma wifi), escribe su nombre y crea la sala o entra con el código de 4 letras.
+3. La pantalla compartida (tablet o TV con navegador) abre `http://192.168.1.20:8080/mesa` y escribe el código: muestra el tablero, el estado de todos y el registro, sin manos.
+4. El anfitrión elige misión y variante hardcore y pulsa «Repartir personajes». Cada jugador elige entre dos cartas en su móvil. Desde ahí, cada uno actúa en su turno y los demás ven el tablero en espera.
+
+El servidor es el anfitrión: aplica las reglas y envía a cada móvil solo lo que ese jugador puede ver (las manos ajenas van ocultas). Si un móvil pierde la conexión, al volver a abrir la página recupera su asiento. El anfitrión puede terminar el turno de un jugador ausente. Para jugar por internet basta exponer el puerto (por ejemplo con un túnel) y compartir la dirección.
+
+### Un solo móvil que se pasa
+
 - **Un solo móvil que se pasa.** Cada jugador planifica y resuelve su turno en el mismo dispositivo y lo pasa al siguiente. La pantalla «Pasa el móvil a…» protege la mano de cartas.
 - Abre `prototipo/dist/index.html` en cualquier navegador moderno o publícalo como página estática. El progreso se guarda en el dispositivo; se puede cerrar y continuar.
 - De 2 a 10 jugadores, 12 personajes y las 12 misiones del documento de diseño.
@@ -16,7 +27,7 @@ Todo lo descrito en las secciones 5 a 15 del documento de diseño: tablero octog
 
 | Regla del documento | En el prototipo |
 | --- | --- |
-| Planificación simultánea de 60 s y resolución por iniciativa | Turnos secuenciales por iniciativa en un solo móvil |
+| Planificación simultánea de 60 s y resolución por iniciativa | Turnos secuenciales por iniciativa; en red cada jugador actúa desde su móvil cuando le toca |
 | Agua y cuerda | Sin casillas de agua |
 | Pánico 3 obliga a ir al refugio | Implementado, pero el pánico solo sube por hordas adyacentes y niños |
 | Comida en el mazo | 12 en vez de 6, para que Invierno sea posible sin Omar |
@@ -120,10 +131,12 @@ Los bots no coordinan, usan mal los vehículos y casi nunca curan: estas cifras 
 | `prototipo/src/datos.js` | Parámetros, cartas, recetas, zombis, personajes, misiones, eventos, hordas, escalado |
 | `prototipo/src/reglas.js` | Motor de reglas puro, sin interfaz, estado serializable |
 | `prototipo/src/ui.js` | Interfaz móvil con Canvas y modo «pasar el móvil» |
+| `prototipo/src/red.js` | Capa de red del cliente: sala, reparto, espera, pantalla compartida |
+| `prototipo/servidor.mjs` | Servidor de partida sin dependencias: `node prototipo/servidor.mjs [puerto]` |
 | `prototipo/sim.mjs` | Simulador de equilibrio: `node prototipo/sim.mjs 40 todas 4,6,10`. También exporta `jugar()` para grabar trazas |
 | `prototipo/barrido.mjs` | Barrido de parámetros: `node prototipo/barrido.mjs 12` |
 | `prototipo/trazas.mjs` | Trazas doradas para el porte a C#: `generar` escribe `prototipo/trazas/*.json`, `verificar` las reproduce |
 | `prototipo/exportar-datos.mjs` | Exporta la hoja de equilibrio a `datos/*.json` para Unity |
 | `prototipo/plantilla.html` | Maqueta y estilos |
 | `prototipo/build.mjs` | Empaqueta todo en `dist/index.html` (y `dist/artifact.html`) |
-| `prototipo/test/reglas.test.mjs` | 25 pruebas del motor, incluida la reproducción de trazas: `node --test prototipo/test/` |
+| `prototipo/test/reglas.test.mjs` | 25 pruebas del motor, incluida la reproducción de trazas: `node --test prototipo/test/reglas.test.mjs` |

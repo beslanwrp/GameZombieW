@@ -69,6 +69,10 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
 .modal.peligro{border-top-color:var(--accent)}.modal.bien{border-top-color:var(--olive)}.modal.evento{border-top-color:var(--hazard)}
 #modal-titulo{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:28px;text-transform:uppercase;margin:0 0 8px;line-height:1}
 #modal-cuerpo h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--hazard);margin:14px 0 4px}#modal-cuerpo h4:first-child{margin-top:0}#modal-cuerpo p{margin:0 0 6px;font-size:15px}
+.red{border:1px solid var(--line);padding:14px 16px;margin:0 0 18px;background:var(--surface)}.red h2{font-size:26px;margin-bottom:2px}
+.codigo{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:72px;line-height:1;letter-spacing:.12em;color:var(--hazard);margin:4px 0 8px}
+.lista-sala{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}.lista-sala .jug{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface);border:1px solid var(--line)}.lista-sala .jug .tag{margin-left:auto}.lista-sala .off{opacity:.55}
+.mini-log{margin-top:8px;max-height:120px;overflow:auto}
 #modal-botones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .lista{display:flex;flex-direction:column;gap:6px}.lista button{text-align:left}
 .objetivo{padding:8px;background:var(--surface2);border:1px solid var(--line)}.objetivo div{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -109,6 +113,15 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
   <div class="panel"></div>
   <div class="mano"></div>
 </div>
+
+<div id="p-espera" class="pantalla" hidden>
+  <div class="cabecera"></div>
+  <div class="tablero"><canvas></canvas><button class="encuadrar">Ver todo</button></div>
+  <div class="panel"></div>
+  <div class="mano"></div>
+</div>
+
+<div id="p-sala" class="pantalla" hidden><div class="hazard"></div><div class="cont"></div></div>
 
 <div id="p-fin" class="pantalla" hidden><div class="hazard"></div><div class="cont"></div></div>
 
@@ -841,9 +854,102 @@ function comprobarFin(G, finRonda = false) {
   return G.fin;
 }
 
+/* ---- red.js ---- */
+// Z-2099 · capa de red del prototipo: cada jugador en su móvil, el servidor aplica las reglas.
+const RED = { activa: false, base: '', codigo: null, token: null, asiento: null, vista: null, fuente: null, vistos: 0, conectando: false };
+const CLAVE_RED = 'z2099-red';
+async function redApi(ruta, cuerpo) { const r = await fetch(RED.base + ruta, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo || {}) }); return r.json(); }
+async function redDisponible() { if (!location.protocol.startsWith('http') || /claude\.ai$/.test(location.hostname)) return false; try { const r = await fetch('/api/ping'); const j = await r.json(); return !!j.ok; } catch (e) { return false; } }
+function redGuardar() { try { localStorage.setItem(CLAVE_RED, JSON.stringify({ codigo: RED.codigo, token: RED.token, asiento: RED.asiento })); } catch (e) { } }
+function redOlvidar() { try { localStorage.removeItem(CLAVE_RED); } catch (e) { } if (RED.fuente) RED.fuente.close(); Object.assign(RED, { activa: false, codigo: null, token: null, asiento: null, vista: null, fuente: null, vistos: 0 }); }
+
+/* Botones de red en la pantalla de inicio */
+async function redInicio(cont) {
+  if (!(await redDisponible())) return;
+  const esMesa = location.pathname === '/mesa';
+  const caja = el('div', { class: 'red' }, el('h2', {}, esMesa ? 'Pantalla compartida' : 'Jugar en red'), el('p', { class: 'muted small' }, esMesa ? 'Escribe el código de la sala para mostrar el tablero en esta pantalla.' : 'Cada jugador en su propio móvil. Uno crea la sala y los demás entran con el código.'));
+  const nombre = el('input', { type: 'text', placeholder: 'Tu nombre', maxlength: 14 }); const codigo = el('input', { type: 'text', placeholder: 'Código de sala', maxlength: 4, style: 'text-transform:uppercase' });
+  const aviso = el('p', { class: 'small peligro' });
+  if (!esMesa) caja.append(el('label', {}, 'Nombre', nombre));
+  caja.append(el('label', {}, 'Código', codigo));
+  const fila = el('div', { class: 'acciones' });
+  if (!esMesa) fila.append(el('button', { class: 'primario', onclick: async () => { const r = await redApi('/api/sala', { nombre: nombre.value.trim() || 'Anfitrión' }); if (!r.ok) { aviso.textContent = r.motivo; return; } redEntrar(r); } }, 'Crear sala'), el('button', { onclick: async () => { const c = codigo.value.trim().toUpperCase(); if (c.length !== 4) { aviso.textContent = 'El código tiene 4 letras'; return; } const r = await redApi(`/api/sala/${c}/unirse`, { nombre: nombre.value.trim() || 'Jugador' }); if (!r.ok) { aviso.textContent = r.motivo; return; } redEntrar(r); } }, 'Unirse'));
+  fila.append(el('button', { class: esMesa ? 'primario' : 'ghost', onclick: async () => { const c = codigo.value.trim().toUpperCase(); if (c.length !== 4) { aviso.textContent = 'El código tiene 4 letras'; return; } const r = await redApi(`/api/sala/${c}/unirse`, { espectador: true }); if (!r.ok) { aviso.textContent = r.motivo; return; } redEntrar(r); } }, esMesa ? 'Mostrar la mesa' : 'Solo mirar (pantalla compartida)'));
+  caja.append(fila, aviso); cont.prepend(caja);
+}
+function redEntrar(r) { Object.assign(RED, { activa: true, codigo: r.codigo, token: r.token, asiento: r.asiento, vistos: 0 }); redGuardar(); redConectar(); }
+function redReanudar() { try { const d = JSON.parse(localStorage.getItem(CLAVE_RED)); if (!d || !d.token || !location.protocol.startsWith('http') || /claude\.ai$/.test(location.hostname)) return false; Object.assign(RED, { activa: true, codigo: d.codigo, token: d.token, asiento: d.asiento, vistos: 0 }); redConectar(); return true; } catch (e) { return false; } }
+function redConectar() {
+  if (RED.fuente) RED.fuente.close();
+  const f = new EventSource(`${RED.base}/api/sala/${RED.codigo}/eventos?token=${encodeURIComponent(RED.token)}`); RED.fuente = f;
+  f.onmessage = e => { try { redAplicar(JSON.parse(e.data)); } catch (err) { console.error(err); } };
+  f.onerror = () => { const est = document.getElementById('toast'); if (est) toast('Conexión perdida. Reintentando…'); };
+  mostrar('inicio'); $('#p-inicio .cont').innerHTML = '<p class="muted">Conectando con la sala…</p>';
+}
+function redAplicar(v) { RED.vista = v; if (v.G) G = v.G; renderRed(); }
+async function redEnviar(f, args) { try { const r = await redApi(`/api/sala/${RED.codigo}/accion`, { token: RED.token, f, args }); if (r.vista) { RED.vista = r.vista; if (r.vista.G) G = r.vista.G; } return r.ok ? r.resultado : { ok: false, motivo: r.motivo || 'Error de red' }; } catch (e) { return { ok: false, motivo: 'Sin conexión con el servidor' }; } }
+
+/* Pantallas de red */
+function renderRed() {
+  const v = RED.vista; if (!v) return;
+  if (v.fase === 'sala') return pintarSala(v);
+  if (v.fase === 'reparto') return pintarRepartoRed(v);
+  // juego
+  const pendientes = (G.avisos || []).slice(RED.vistos); RED.vistos = (G.avisos || []).length;
+  const seguir = () => { if (G.fin) return fin(); if (RED.asiento < 0) return pintarEspera(v, true);
+    if (G.fase === 'turno' && turnoActual(G).id === RED.asiento) { mostrar('juego'); pintarJuego(); }
+    else if (G.fase === 'zombi' && G.zturno.jugadorId === RED.asiento) { mostrar('zombi'); pintarZombi(); }
+    else if (G.fase === 'decision' && G.decision.jugadorId === RED.asiento) { pintarEspera(v); const E = EVENTOS[G.decision.evento]; modal('Instinto de Beatriz', `<p>Se ha revelado el evento <b>${E.nombre}</b>: ${E.texto}</p><p class="muted">Una vez por partida puedes descartarlo antes de que ocurra.</p>`, [['Descartarlo', () => tras(M.resolverDecision(G, true)), 'primario'], ['Dejar que ocurra', () => tras(M.resolverDecision(G, false))]], 'evento'); }
+    else pintarEspera(v); };
+  if (pendientes.length && $('#modal').hidden && RED.asiento >= 0) { const cadena = (i) => { if (i >= pendientes.length) return seguir(); const a = pendientes[i]; modal(a.titulo, `<p>${a.texto}</p>`, [['Seguir', () => cadena(i + 1)]], a.tipo); }; cadena(0); } else seguir();
+}
+function pintarSala(v) {
+  mostrar('sala'); const c = $('#p-sala .cont'); c.innerHTML = '';
+  c.append(el('div', { class: 'eyebrow' }, 'Sala de partida'), el('div', { class: 'codigo' }, v.codigo), el('p', { class: 'muted small' }, `Los demás entran en ${location.origin} y escriben este código. Pantalla compartida: ${location.origin}/mesa`));
+  const lista = el('div', { class: 'lista-sala' }); v.asientos.forEach(a => lista.append(el('div', { class: 'jug' + (a.conectado ? '' : ' off') }, el('b', {}, a.nombre), el('span', { class: 'muted' }, a.asiento === 0 ? ' · anfitrión' : ''), el('span', { class: 'tag' + (a.conectado ? ' bien' : '') }, a.conectado ? 'conectado' : 'desconectado')))); c.append(el('h2', {}, `Supervivientes · ${v.asientos.length} de 10`), lista);
+  if (v.espectadores) c.append(el('p', { class: 'muted small' }, `${v.espectadores} pantalla${v.espectadores > 1 ? 's' : ''} compartida${v.espectadores > 1 ? 's' : ''} conectada${v.espectadores > 1 ? 's' : ''}.`));
+  const M0 = MISIONES[v.misionId]; c.append(el('h2', {}, 'Misión'), el('p', {}, el('b', {}, M0.nombre), ` · ${M0.etiquetas.join(' ')} · ${M0.rondas} rondas`), el('p', { class: 'muted small' }, M0.texto));
+  if (v.anfitrion) {
+    const mis = el('select', {}, ...Object.entries(MISIONES).map(([id, m]) => el('option', { value: id, selected: id === v.misionId }, `${m.nombre} · ${m.etiquetas.join(' ')}`)));
+    const hc = el('select', {}, el('option', { value: '', selected: !v.opciones.hardcoreTardio }, 'Hardcore: conversión al terminar la ronda'), el('option', { value: '1', selected: v.opciones.hardcoreTardio }, 'Hardcore: conversión en la noche siguiente'));
+    const cfg = () => redApi(`/api/sala/${v.codigo}/configurar`, { token: RED.token, misionId: mis.value, opciones: { hardcoreTardio: hc.value === '1' } });
+    mis.addEventListener('change', cfg); hc.addEventListener('change', cfg);
+    c.append(el('label', {}, 'Cambiar misión', mis), el('label', {}, 'Variante hardcore', hc), el('button', { class: 'primario ancho', disabled: v.asientos.length < 2, onclick: async () => { const r = await redApi(`/api/sala/${v.codigo}/empezar`, { token: RED.token }); if (!r.ok) toast(r.motivo); } }, v.asientos.length < 2 ? 'Esperando a otro jugador…' : 'Repartir personajes y empezar'));
+  } else if (RED.asiento >= 0) c.append(el('p', { class: 'muted' }, 'Esperando a que el anfitrión empiece.'));
+  else c.append(el('p', { class: 'muted' }, 'Esta pantalla mostrará el tablero cuando empiece la partida.'));
+  c.append(el('button', { class: 'mini', onclick: () => { redOlvidar(); inicio(); } }, 'Salir de la sala'));
+}
+function pintarRepartoRed(v) {
+  if (RED.asiento < 0) { mostrar('sala'); $('#p-sala .cont').innerHTML = '<p class="muted">Los supervivientes están eligiendo personaje…</p>'; return; }
+  const yo = v.asientos[RED.asiento]; const c = $('#p-reparto .cont'); c.innerHTML = '';
+  if (yo.elegido) { c.append(el('h2', {}, 'Personaje elegido'), el('p', { class: 'muted' }, `Esperando a: ${v.asientos.filter(a => !a.elegido).map(a => a.nombre).join(', ') || 'nadie'}.`)); mostrar('reparto'); return; }
+  c.append(el('h2', {}, yo.nombre + ', elige tu personaje'), el('p', { class: 'muted' }, 'Dos cartas al azar. Te quedas una.'));
+  (v.oferta || []).forEach(pid => { const P = PERSONAJES[pid]; c.append(el('button', { class: 'carta-personaje', style: `--c:${P.color}`, onclick: async () => { const r = await redApi(`/api/sala/${v.codigo}/elegir`, { token: RED.token, personajeId: pid }); if (!r.ok) toast(r.motivo); } },
+    el('div', { class: 'cp-nombre' }, P.nombre, el('span', {}, P.alias)), el('div', { class: 'cp-stats' }, `Vida ${P.vida} · Iniciativa ${P.iniciativa} · Capacidad ${P.capacidad} · Dados ${P.dados}${P.inicial.length ? ' · Empieza con ' + P.inicial.map(i => OBJETOS[i].nombre.toLowerCase()).join(', ') : ''}`),
+    el('div', { class: 'cp-h' }, el('b', {}, 'Habilidad. '), P.habilidad), el('div', { class: 'cp-h' }, el('b', {}, 'Pro. '), P.pro), el('div', { class: 'cp-h contra' }, el('b', {}, 'Contra. '), P.contra))); });
+  mostrar('reparto');
+}
+function pintarEspera(v, mesa = false) {
+  mostrar('espera'); const root = $('#p-espera'); cabecera(root); const panel = root.querySelector('.panel'); panel.innerHTML = '';
+  let quien = '';
+  if (G.fase === 'turno') { const j = turnoActual(G); quien = `Turno de ${j.nombre} · ${PERSONAJES[j.personajeId].alias}`; }
+  else if (G.fase === 'zombi') quien = `Actúa el jugador zombi: ${G.jugadores[G.zturno.jugadorId].nombre}`;
+  else if (G.fase === 'decision') quien = `${G.jugadores[G.decision.jugadorId].nombre} decide sobre el evento`;
+  panel.append(el('div', { class: 'quien' }, el('b', {}, mesa ? 'Pantalla compartida' : 'Esperando'), el('span', {}, ' · ' + quien)));
+  const filas = el('div', { class: 'estado' }); G.jugadores.forEach(j => filas.append(el('span', { class: 'tag' + (j.estado === 'zombi' || j.estado === 'muerto' ? ' peligro' : j.estado === 'caido' ? '' : ' bien'), style: `border-color:${PERSONAJES[j.personajeId].color}` }, `${j.id + 1} ${j.nombre} ♥${j.vida}${j.mordido ? ' ☠' : ''}${j.estado === 'zombi' ? ' zombi' : j.estado === 'caido' ? ' caído' : j.estado === 'salido' ? ' a salvo' : ''}`))); panel.append(filas);
+  if (!mesa && RED.asiento >= 0) { const yo = G.jugadores[RED.asiento]; if (yo) panel.append(el('p', { class: 'muted small' }, `Tú: ${PERSONAJES[yo.personajeId].nombre} · vida ${yo.vida}/${yo.vidaMax}${yo.mordido ? ' · mordido' : ''}${yo.panico ? ' · pánico ' + yo.panico : ''} · ${yo.mano.length} cartas`)); }
+  const mano = root.querySelector('.mano'); mano.innerHTML = '';
+  if (!mesa && RED.asiento >= 0 && G.jugadores[RED.asiento]) G.jugadores[RED.asiento].mano.forEach(cc => { const O = OBJETOS[cc.id]; mano.append(el('button', { class: 'carta ' + O.tipo, onclick: () => modal(O.nombre, `<p>${cc.id in RECETAS ? RECETAS[cc.id].texto : ''}</p><p class="muted">Peso ${O.peso}</p>`) }, el('b', {}, O.nombre), el('span', {}, O.tipo))); });
+  if (mesa) { const ult = [...G.log].reverse().slice(0, 6); const lg = el('div', { class: 'log mini-log' }); ult.forEach(l => lg.append(el('div', { class: 'l ' + l.tipo }, el('span', { class: 'r' }, 'R' + l.ronda), l.texto))); panel.append(lg); }
+  dibujar();
+}
+
 /* ---- ui.js ---- */
 // Z-2099 · interfaz del prototipo M0 v0.2 (un dispositivo, se pasa el móvil).
 
+const ENGINE = { mover, rastrear, saquear, atacar, craftear, curar, amputar, triaje, sermon, levantar, dar, usar, vehiculo, subirPasajero, salir, descansar, terminarTurno, repetirDado, zMoverHorda, zMover, zAtacar, zOler, zOcultar, zTerminar, resolverDecision };
+// M: el motor en uso. En local llama a las reglas; en red envía la intención al servidor y devuelve una promesa con el resultado.
+const M = new Proxy({}, { get: (_, f) => (...a) => RED.activa ? redEnviar(f, a.slice(1)) : ENGINE[f](...a) });
 const $ = s => document.querySelector(s);
 const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (k === 'html') e.innerHTML = v; else if (v === false || v == null) { } else e.setAttribute(k, v === true ? '' : v); } kids.flat().forEach(k => k != null && k !== false && e.append(k.nodeType ? k : document.createTextNode(k))); return e; };
 const CLAVE = 'z2099-m0';
@@ -854,7 +960,7 @@ function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ G, UI: {
 function cargar() { try { const d = JSON.parse(localStorage.getItem(CLAVE)); if (d && d.G && d.G.version === 2) { G = d.G; Object.assign(UI, d.UI); return true; } } catch (e) { } return false; }
 
 /* ---------- pantallas y modales ---------- */
-function mostrar(id) { UI.pantalla = id; document.querySelectorAll('.pantalla').forEach(p => p.hidden = p.id !== 'p-' + id); if (id === 'juego' || id === 'zombi') requestAnimationFrame(() => { ajustarCanvas(); dibujar(); }); }
+function mostrar(id) { UI.pantalla = id; document.querySelectorAll('.pantalla').forEach(p => p.hidden = p.id !== 'p-' + id); if (id === 'juego' || id === 'zombi' || id === 'espera') requestAnimationFrame(() => { ajustarCanvas(); dibujar(); }); }
 function modal(titulo, cuerpo, botones = [['Cerrar', null]], clase = '') {
   const m = $('#modal'); m.className = 'modal ' + clase; m.hidden = false; $('#modal-titulo').textContent = titulo; const b = $('#modal-cuerpo'); b.innerHTML = ''; if (typeof cuerpo === 'string') b.innerHTML = cuerpo; else b.append(cuerpo);
   const bb = $('#modal-botones'); bb.innerHTML = ''; botones.forEach(([t, f, c]) => bb.append(el('button', { class: c || '', onclick: () => { m.hidden = true; f && f(); } }, t)));
@@ -881,7 +987,7 @@ function inicio() {
       const js = [...nombres.querySelectorAll('input')].map((inp, i) => ({ nombre: inp.value.trim() || 'Jugador ' + (i + 1) }));
       UI.reparto = { jugadores: js, misionId, idx: 0, semilla: Math.floor(Math.random() * 1e9), opciones: { hardcoreTardio: hc.value === '1' } }; guardar(); reparto();
     } }, 'Empezar'));
-  mostrar('inicio');
+  mostrar('inicio'); redInicio(cont);
 }
 function reparto() {
   const Rp = UI.reparto;
@@ -900,15 +1006,16 @@ function pasar(nombre, color, cb) { $('#pasar-nombre').textContent = nombre; $('
 
 /* ---------- bucle principal ---------- */
 function reanudar() {
+  if (RED.activa) return renderRed();
   if (!G) { if (UI.reparto) return reparto(); return inicio(); } if (G.fin) return fin();
   avisos(() => {
     if (G.fase === 'turno') { const j = turnoActual(G); const clave = 't' + G.ronda + '-' + j.id; if (UI.mostrado !== clave) { pasar(j.nombre, PERSONAJES[j.personajeId].color, () => { UI.mostrado = clave; UI.modo = 'mover'; guardar(); mostrar('juego'); pintarJuego(); }); return; } mostrar('juego'); pintarJuego(); }
     else if (G.fase === 'zombi') { const j = G.jugadores[G.zturno.jugadorId]; const clave = 'z' + G.ronda + '-' + j.id; if (UI.mostrado !== clave) { pasar(j.nombre + ' (zombi)', '#8fa86a', () => { UI.mostrado = clave; UI.modo = 'zmover'; guardar(); mostrar('zombi'); pintarZombi(); }); return; } mostrar('zombi'); pintarZombi(); }
-    else if (G.fase === 'decision') { const j = G.jugadores[G.decision.jugadorId]; const E = EVENTOS[G.decision.evento]; pasar(j.nombre, PERSONAJES[j.personajeId].color, () => { mostrar('juego'); modal('Instinto de Beatriz', `<p>Se ha revelado el evento <b>${E.nombre}</b>: ${E.texto}</p><p class="muted">Una vez por partida puedes descartarlo antes de que ocurra.</p>`, [['Descartarlo', () => tras(resolverDecision(G, true)), 'primario'], ['Dejar que ocurra', () => tras(resolverDecision(G, false))]], 'evento'); }); }
+    else if (G.fase === 'decision') { const j = G.jugadores[G.decision.jugadorId]; const E = EVENTOS[G.decision.evento]; pasar(j.nombre, PERSONAJES[j.personajeId].color, () => { mostrar('juego'); modal('Instinto de Beatriz', `<p>Se ha revelado el evento <b>${E.nombre}</b>: ${E.texto}</p><p class="muted">Una vez por partida puedes descartarlo antes de que ocurra.</p>`, [['Descartarlo', () => tras(M.resolverDecision(G, true)), 'primario'], ['Dejar que ocurra', () => tras(M.resolverDecision(G, false))]], 'evento'); }); }
     else if (G.fase === 'fin') fin();
   });
 }
-function tras(res) { if (res && res.ok === false && res.motivo) toast(res.motivo); guardar(); if (G.fin) { avisos(() => fin()); return; } if (G.fase !== 'turno' && G.fase !== 'zombi') { reanudar(); return; } const j = G.fase === 'turno' ? turnoActual(G) : G.jugadores[G.zturno.jugadorId]; const clave = (G.fase === 'turno' ? 't' : 'z') + G.ronda + '-' + j.id; if (UI.mostrado !== clave) { reanudar(); return; } G.fase === 'turno' ? pintarJuego() : pintarZombi(); avisos(); }
+function tras(res) { Promise.resolve(res).then(res => { if (res && res.ok === false && res.motivo) toast(res.motivo); if (RED.activa) { renderRed(); return; } guardar(); if (G.fin) { avisos(() => fin()); return; } if (G.fase !== 'turno' && G.fase !== 'zombi') { reanudar(); return; } const j = G.fase === 'turno' ? turnoActual(G) : G.jugadores[G.zturno.jugadorId]; const clave = (G.fase === 'turno' ? 't' : 'z') + G.ronda + '-' + j.id; if (UI.mostrado !== clave) { reanudar(); return; } G.fase === 'turno' ? pintarJuego() : pintarZombi(); avisos(); }); }
 
 /* ---------- cabecera ---------- */
 function textoObjetivo() {
@@ -944,29 +1051,29 @@ function pintarJuego() {
     j.vehiculo ? `<span class="tag bien">${OBJETOS[j.vehiculo.id].nombre} · gas ${j.vehiculo.gas}${pasajerosDe(G, j).length ? ' · ' + pasajerosDe(G, j).length + ' pasajeros' : ''}</span>` : '', j.pasajeroDe != null ? `<span class="tag bien">Pasajero de ${G.jugadores[j.pasajeroDe].nombre}</span>` : '',
     j.sinDoble ? '<span class="tag">Amputado</span>' : '', G.enlaces.filter(e => e.a === j.id || e.b === j.id).map(e => `<span class="tag bien">Enlace con ${G.jugadores[e.a === j.id ? e.b : e.a].nombre} · ${e.rondas}</span>`).join(''), peso(G, j) > capacidad(G, j) ? '<span class="tag peligro">Sobrecarga</span>' : '', G.niebla ? '<span class="tag">Niebla</span>' : ''].join('');
   panel.append(el('div', { class: 'quien' }, el('b', {}, j.nombre), el('span', {}, ` · ${P.nombre}, ${P.alias}`), el('span', { class: 'vida' }, corazones)), el('div', { class: 'estado', html: tags }));
-  if (T.levantandose) { panel.append(el('p', {}, `${j.nombre} estaba en el suelo. Se levanta con 1 de vida y pierde el turno.`), el('button', { class: 'primario', onclick: () => { terminarTurno(G, true); tras(); } }, 'Continuar')); dibujar(); root.querySelector('.mano').innerHTML = ''; return; }
-  const dados = el('div', { class: 'dados' }, ...T.dados.map((d, i) => el('button', { class: 'dado ' + d, title: d, onclick: () => { const r = repetirDado(G, i); if (!r.ok) toast(r.motivo || 'No se puede repetir'); else tras(); } }, { paso: '→', doble: '⇒', ruido: '♪', mordisco: '☠' }[d])));
+  if (T.levantandose) { panel.append(el('p', {}, `${j.nombre} estaba en el suelo. Se levanta con 1 de vida y pierde el turno.`), el('button', { class: 'primario', onclick: () => tras(M.terminarTurno(G, true)) }, 'Continuar')); dibujar(); root.querySelector('.mano').innerHTML = ''; return; }
+  const dados = el('div', { class: 'dados' }, ...T.dados.map((d, i) => el('button', { class: 'dado ' + d, title: d, onclick: () => Promise.resolve(M.repetirDado(G, i)).then(r => { if (!r.ok) toast(r.motivo || 'No se puede repetir'); else tras(); }) }, { paso: '→', doble: '⇒', ruido: '♪', mordisco: '☠' }[d])));
   const elias = G.jugadores.find(x => x.personajeId === 'elias' && x.estado === 'vivo'); const puedeOrden = elias && !G.banderas.ordenUsada && elias.id !== j.id && dist(elias.pos, j.pos) <= 3;
   panel.append(el('div', { class: 'fila' }, dados, el('div', { class: 'contadores' }, el('span', {}, el('b', {}, T.pasos), ' pasos'), el('span', {}, el('b', {}, T.acciones), ' acciones'))), puedeOrden ? el('p', { class: 'muted small' }, 'Orden de Elías disponible: toca un dado para repetirlo.') : null);
   const acc = el('div', { class: 'acciones' }); const c = G.casillas[j.pos]; const zs = zombisEn(G, j.pos); const sinAcc = T.acciones <= 0;
   const btn = (t, f, dis = false, cls = '') => acc.append(el('button', { class: cls, disabled: dis || (sinAcc && !cls.includes('libre')), onclick: f }, t));
   const puedeSaquear = ['edificio', 'gasolinera', 'farmacia', 'taller'].includes(c.tipo) && c.saqueos < PARAMS.saqueosPorCasilla && !zs.length;
-  btn(`Saquear${c.saqueos ? ' (' + (PARAMS.saqueosPorCasilla - c.saqueos) + ')' : ''}`, () => tras(saquear(G)), !puedeSaquear);
+  btn(`Saquear${c.saqueos ? ' (' + (PARAMS.saqueosPorCasilla - c.saqueos) + ')' : ''}`, () => tras(M.saquear(G)), !puedeSaquear);
   const objs = objetivosAtaque(G); btn('Atacar', () => elegirAtaque(objs), !objs.length);
   btn(`Craftear${c.tipo === 'taller' ? ' (gratis)' : ''}`, () => elegirReceta(), false, c.tipo === 'taller' ? 'libre' : '');
   const adyacentes = vivos(G).filter(x => x.id !== j.id && dist(x.pos, j.pos) <= 1);
-  if (j.pasajeroDe != null) btn('Bajar del vehículo', () => tras(vehiculo(G)));
-  else if (j.vehiculo) btn('Bajar del vehículo', () => tras(vehiculo(G)));
-  else { const vs = j.mano.filter(cc => OBJETOS[cc.id].porGas); if (vs.length && j.personajeId !== 'ruy') btn('Conducir', () => vs.length === 1 ? tras(vehiculo(G, vs[0].uid)) : elegirDeLista('¿Cuál?', vs.map(v => [OBJETOS[v.id].nombre + ' · gas ' + v.gas, () => tras(vehiculo(G, v.uid))]))); const cond = conductoresDisponibles(G); if (cond.length) btn('Subir de pasajero', () => elegirDeLista('¿Con quién?', cond.map(x => [`${x.nombre} · ${OBJETOS[x.vehiculo.id].nombre}`, () => tras(subirPasajero(G, x.id))]))); }
-  if (puedeSalir(G)) btn('Salir de la ciudad', () => modal('Salir de la ciudad', `<p>Te vas con ${pasajerosDe(G, j).length} pasajeros. No vuelves a la partida.</p>`, [['Salir', () => tras(salir(G)), 'primario'], ['Cancelar', null]]));
+  if (j.pasajeroDe != null) btn('Bajar del vehículo', () => tras(M.vehiculo(G)));
+  else if (j.vehiculo) btn('Bajar del vehículo', () => tras(M.vehiculo(G)));
+  else { const vs = j.mano.filter(cc => OBJETOS[cc.id].porGas); if (vs.length && j.personajeId !== 'ruy') btn('Conducir', () => vs.length === 1 ? tras(M.vehiculo(G, vs[0].uid)) : elegirDeLista('¿Cuál?', vs.map(v => [OBJETOS[v.id].nombre + ' · gas ' + v.gas, () => tras(M.vehiculo(G, v.uid))]))); const cond = conductoresDisponibles(G); if (cond.length) btn('Subir de pasajero', () => elegirDeLista('¿Con quién?', cond.map(x => [`${x.nombre} · ${OBJETOS[x.vehiculo.id].nombre}`, () => tras(M.subirPasajero(G, x.id))]))); }
+  if (puedeSalir(G)) btn('Salir de la ciudad', () => modal('Salir de la ciudad', `<p>Te vas con ${pasajerosDe(G, j).length} pasajeros. No vuelves a la partida.</p>`, [['Salir', () => tras(M.salir(G)), 'primario'], ['Cancelar', null]]));
   const dests = destinatarios(G); btn('Dar cartas', () => darCartas(dests), !dests.length || !j.mano.length);
-  const caidos = adyacentes.filter(x => x.estado === 'caido'); if (caidos.length) btn('Levantar', () => elegirDeLista('¿A quién?', caidos.map(x => [x.nombre, () => tras(levantar(G, x.id))])));
-  const amputables = j.mano.some(cc => OBJETOS[cc.id].amputa) ? adyacentes.filter(x => x.mordido && (x.mordido.turnos != null || x.mordido.sc) && x.estado === 'vivo' && G.ronda - x.mordido.ronda <= 1) : []; if (amputables.length) btn('Amputar', () => elegirDeLista('Amputar (2 heridas, salva del contagio)', amputables.map(x => [x.nombre, () => tras(amputar(G, x.id))])));
-  btn('Descansar', () => tras(descansar(G)), Object.values(G.zombis).some(z => dist(z.pos, j.pos) <= 2));
-  if (j.personajeId === 'anselmo') btn('Sermón', () => tras(sermon(G)), !vivos(G).some(x => dist(x.pos, j.pos) <= 2 && x.panico > 0));
-  if (j.personajeId === 'naima' && !G.banderas.triajeUsado) { const cand = adyacentes.filter(x => !['elias', 'beatriz'].includes(x.personajeId) && x.vida < x.vidaMax); if (cand.length) btn('Triaje (gratis)', () => elegirDeLista('Triaje', cand.map(x => [x.nombre, () => tras(triaje(G, x.id))])), false, 'libre'); }
+  const caidos = adyacentes.filter(x => x.estado === 'caido'); if (caidos.length) btn('Levantar', () => elegirDeLista('¿A quién?', caidos.map(x => [x.nombre, () => tras(M.levantar(G, x.id))])));
+  const amputables = j.mano.some(cc => OBJETOS[cc.id].amputa) ? adyacentes.filter(x => x.mordido && (x.mordido.turnos != null || x.mordido.sc) && x.estado === 'vivo' && G.ronda - x.mordido.ronda <= 1) : []; if (amputables.length) btn('Amputar', () => elegirDeLista('Amputar (2 heridas, salva del contagio)', amputables.map(x => [x.nombre, () => tras(M.amputar(G, x.id))])));
+  btn('Descansar', () => tras(M.descansar(G)), Object.values(G.zombis).some(z => dist(z.pos, j.pos) <= 2));
+  if (j.personajeId === 'anselmo') btn('Sermón', () => tras(M.sermon(G)), !vivos(G).some(x => dist(x.pos, j.pos) <= 2 && x.panico > 0));
+  if (j.personajeId === 'naima' && !G.banderas.triajeUsado) { const cand = adyacentes.filter(x => !['elias', 'beatriz'].includes(x.personajeId) && x.vida < x.vidaMax); if (cand.length) btn('Triaje (gratis)', () => elegirDeLista('Triaje', cand.map(x => [x.nombre, () => tras(M.triaje(G, x.id))])), false, 'libre'); }
   if (T.rastreo && T.movido) btn('Rastrear (gratis)', () => { UI.modo = 'rastreo'; toast('Toca una loseta oculta adyacente'); dibujar(); }, false, 'libre');
-  acc.append(el('button', { class: 'primario libre', onclick: () => { const p = puedeTerminar(G); if (!p.ok) { toast(p.motivo); return; } terminarTurno(G); UI.modo = 'mover'; tras(); } }, 'Terminar turno'));
+  acc.append(el('button', { class: 'primario libre', onclick: () => { const p = puedeTerminar(G); if (!p.ok) { toast(p.motivo); return; } UI.modo = 'mover'; tras(M.terminarTurno(G)); } }, 'Terminar turno'));
   const ayuda = { mover: T.pasos > 0 || j.vehiculo ? 'Toca una casilla iluminada para moverte. Toca un zombi para atacarlo. Toca cualquier casilla para ver qué hay.' : 'Sin pasos. Usa tus acciones o termina el turno.', molotov: 'Toca la casilla adyacente donde lanzar el molotov.', barricada: 'Toca la casilla adyacente cuyo paso quieres bloquear.', rastreo: 'Toca una loseta oculta adyacente para rastrearla.' }[UI.modo];
   panel.append(acc, el('p', { class: 'muted small ayuda' }, ayuda));
   const mano = root.querySelector('.mano'); mano.innerHTML = ''; mano.append(el('div', { class: 'peso' }, `Peso ${peso(G, j)}/${capacidad(G, j)}`));
@@ -979,27 +1086,27 @@ function elegirAtaque(objs) {
   objs.forEach(({ z, d }) => { const nombre = (z.tipo === 'jugador' ? G.jugadores[z.jugadorId].nombre + ' (zombi)' : ZOMBIS[z.tipo].nombre) + (z.n > 1 ? ' ×' + z.n : '') + (esHorda(z) ? ' · horda' : '') + (d ? ` · a ${d} casillas` : ' · aquí');
     let opciones = [[null, 'Manos (1 dado)'], ...armas.filter(a => d === 0 || OBJETOS[a.id].distancia).filter(a => !(d > 0 && ZOMBIS[z.tipo].inmuneDistancia)).map(a => [a.uid, `${OBJETOS[a.id].nombre} (${OBJETOS[a.id].dados} dados${OBJETOS[a.id].fuego ? ', ruido' : ''})`])];
     if (d > 0) opciones.shift();
-    c.append(el('div', { class: 'objetivo' }, el('b', {}, nombre), el('div', {}, ...opciones.map(([uid, t]) => el('button', { onclick: () => { cerrarModal(); const r = atacar(G, z.id, uid); if (r.ok) toast(`[${r.dados.join(' ')}] ${r.impactos} impactos · ${r.muertos} eliminados${r.mordido ? ' · ¡te muerde!' : ''}`); tras(r); } }, t))))); });
+    c.append(el('div', { class: 'objetivo' }, el('b', {}, nombre), el('div', {}, ...opciones.map(([uid, t]) => el('button', { onclick: () => { cerrarModal(); Promise.resolve(M.atacar(G, z.id, uid)).then(r => { if (r.ok) toast(`[${r.dados.join(' ')}] ${r.impactos} impactos · ${r.muertos} eliminados${r.mordido ? ' · ¡te muerde!' : ''}`); tras(r); }); } }, t))))); });
   modal('Atacar', c, [['Cancelar', null]]);
 }
 function elegirReceta() {
   const j = turnoActual(G); const c = el('div', { class: 'lista' }); let chapuza = false;
   if (j.personajeId === 'marga' && !G.banderas.chapuzaUsada) c.append(el('label', { class: 'check' }, el('input', { type: 'checkbox', onchange: e => { chapuza = e.target.checked; pinta(); } }), 'Chapuza: un ingrediente menos (una vez por partida)'));
   const lista = el('div', { class: 'lista' }); c.append(lista);
-  const pinta = () => { lista.innerHTML = ''; G.recetasConocidas.forEach(r => { const R = RECETAS[r]; const faltan = R.ing.filter((ing, i) => j.mano.filter(cc => cc.id === ing).length < R.ing.slice(0, i + 1).filter(x => x === ing).length).length; const puede = faltan === 0 || (chapuza && faltan === 1); lista.append(el('button', { class: 'receta' + (puede ? '' : ' falta'), disabled: !puede, onclick: () => { cerrarModal(); tras(craftear(G, r, chapuza)); } }, el('b', {}, R.nombre), el('span', {}, R.ing.map(i => OBJETOS[i].nombre).join(' + ')), el('small', {}, R.texto))); }); };
+  const pinta = () => { lista.innerHTML = ''; G.recetasConocidas.forEach(r => { const R = RECETAS[r]; const faltan = R.ing.filter((ing, i) => j.mano.filter(cc => cc.id === ing).length < R.ing.slice(0, i + 1).filter(x => x === ing).length).length; const puede = faltan === 0 || (chapuza && faltan === 1); lista.append(el('button', { class: 'receta' + (puede ? '' : ' falta'), disabled: !puede, onclick: () => { cerrarModal(); tras(M.craftear(G, r, chapuza)); } }, el('b', {}, R.nombre), el('span', {}, R.ing.map(i => OBJETOS[i].nombre).join(' + ')), el('small', {}, R.texto))); }); };
   pinta(); if (!G.recetasConocidas.length) c.append('No conoces recetas.'); modal('Libro de recetas', c, [['Cerrar', null]]);
 }
-function darCartas(dests) { const j = turnoActual(G); const c = el('div', { class: 'lista' }); const sel = new Set(); j.mano.forEach(cc => c.append(el('label', { class: 'check' }, el('input', { type: 'checkbox', onchange: e => e.target.checked ? sel.add(cc.uid) : sel.delete(cc.uid) }), OBJETOS[cc.id].nombre))); const dest = el('select', {}, ...dests.map(x => el('option', { value: x.id }, x.nombre + (dist(x.pos, j.pos) > 1 ? ' (por enlace)' : '')))); c.append(el('label', {}, 'Para ', dest)); modal('Dar cartas (1 acción)', c, [['Dar', () => tras(dar(G, +dest.value, [...sel]))], ['Cancelar', null]]); }
+function darCartas(dests) { const j = turnoActual(G); const c = el('div', { class: 'lista' }); const sel = new Set(); j.mano.forEach(cc => c.append(el('label', { class: 'check' }, el('input', { type: 'checkbox', onchange: e => e.target.checked ? sel.add(cc.uid) : sel.delete(cc.uid) }), OBJETOS[cc.id].nombre))); const dest = el('select', {}, ...dests.map(x => el('option', { value: x.id }, x.nombre + (dist(x.pos, j.pos) > 1 ? ' (por enlace)' : '')))); c.append(el('label', {}, 'Para ', dest)); modal('Dar cartas (1 acción)', c, [['Dar', () => tras(M.dar(G, +dest.value, [...sel]))], ['Cancelar', null]]); }
 function usarCarta(cc) {
   const j = turnoActual(G); const O = OBJETOS[cc.id]; const ops = [];
-  if (O.cura || O.contagio) { const dests = objetivosCura(G); ops.push(['Usar en…', () => elegirDeLista(O.nombre, dests.map(d => [d.id === j.id ? 'Yo' : d.nombre, () => tras(curar(G, cc.uid, d.id))]))]); }
+  if (O.cura || O.contagio) { const dests = objetivosCura(G); ops.push(['Usar en…', () => elegirDeLista(O.nombre, dests.map(d => [d.id === j.id ? 'Yo' : d.nombre, () => tras(M.curar(G, cc.uid, d.id))]))]); }
   if (cc.id === 'molotov') ops.push(['Lanzar', () => { UI.modo = 'molotov'; toast('Toca la casilla adyacente objetivo'); pintarJuego(); }]);
   if (cc.id === 'barricada') ops.push(['Colocar', () => { UI.modo = 'barricada'; toast('Toca la casilla adyacente a bloquear'); pintarJuego(); }]);
-  if (cc.id === 'enlace') ops.push(['Enlazar con…', () => elegirDeLista('Enlace', vivos(G).filter(x => x.id !== j.id && x.estado === 'vivo' && x.personajeId !== 'ceniza').map(x => [x.nombre, () => tras(usar(G, cc.uid, x.id))]))]);
-  if (cc.id === 'senuelo' || cc.id === 'camuflaje') ops.push(['Usar aquí', () => tras(usar(G, cc.uid))]);
-  if (cc.id === 'bidon' && j.vehiculo) ops.push(['Repostar', () => tras(usar(G, cc.uid))]);
-  if (cc.id === 'comida' && j.personajeId === 'omar') ops.push(['Compartir (quita pánico)', () => tras(usar(G, cc.uid))]);
-  if (O.porGas && !j.vehiculo && j.pasajeroDe == null && j.personajeId !== 'ruy') ops.push(['Conducir', () => tras(vehiculo(G, cc.uid))]);
+  if (cc.id === 'enlace') ops.push(['Enlazar con…', () => elegirDeLista('Enlace', vivos(G).filter(x => x.id !== j.id && x.estado === 'vivo' && x.personajeId !== 'ceniza').map(x => [x.nombre, () => tras(M.usar(G, cc.uid, x.id))]))]);
+  if (cc.id === 'senuelo' || cc.id === 'camuflaje') ops.push(['Usar aquí', () => tras(M.usar(G, cc.uid))]);
+  if (cc.id === 'bidon' && j.vehiculo) ops.push(['Repostar', () => tras(M.usar(G, cc.uid))]);
+  if (cc.id === 'comida' && j.personajeId === 'omar') ops.push(['Compartir (quita pánico)', () => tras(M.usar(G, cc.uid))]);
+  if (O.porGas && !j.vehiculo && j.pasajeroDe == null && j.personajeId !== 'ruy') ops.push(['Conducir', () => tras(M.vehiculo(G, cc.uid))]);
   const desc = cc.id in RECETAS ? RECETAS[cc.id].texto : O.tipo === 'arma' ? `${O.dados} dados${O.extra ? ' +' + O.extra : ''}${O.distancia ? ', distancia ' + O.distancia : ', cuerpo a cuerpo'}${O.fuego ? ', +2 ruido' : ''}${O.mataCorredor ? ', mata corredores' : ''}${O.amputa ? ', sirve para amputar' : ''}.` : O.tipo === 'material' ? 'Material de crafteo.' : O.tipo === 'vehiculo' && !O.porGas ? 'Necesita gasolina: craftea con un bidón.' : cc.id === 'comida' ? 'Se deposita al terminar turno en el refugio.' : cc.id === 'bidon' ? 'Combustible. Se deposita en el generador (El depósito) o en el refugio (La granja).' : cc.id === 'semillas' ? 'Se depositan en el refugio.' : cc.id.startsWith('muestra') ? 'Se entrega en el laboratorio.' : '';
   modal(O.nombre, `<p>${desc}</p><p class="muted">Peso ${O.peso}${cc.durab != null ? ' · durabilidad ' + cc.durab : ''}</p>`, [...ops, ['Cerrar', null]]);
 }
@@ -1011,10 +1118,10 @@ function pintarZombi() {
   const acc = el('div', { class: 'acciones' }); const b = (t, f, dis) => acc.append(el('button', { disabled: dis, onclick: f }, t));
   b(UI.modo === 'zmover' ? '● Mover mi ficha' : 'Mover mi ficha', () => { UI.modo = 'zmover'; pintarZombi(); }, !z);
   b(UI.modo.startsWith('zhorda') ? '● Empujar horda' : 'Empujar horda', () => { UI.modo = 'zhorda_sel'; UI.zSel = null; toast('Toca el grupo de zombis y luego la casilla'); pintarZombi(); }, G.zturno.acciones <= 0);
-  const presas = z ? jugadoresEn(G, z.pos) : []; b('Atacar', () => elegirDeLista('Atacar a…', presas.map(p => [p.nombre, () => tras(zAtacar(G, p.id))])), !presas.length || G.zturno.acciones <= 0);
-  const olibles = z ? vivos(G).filter(p => dist(p.pos, z.pos) <= 3) : []; b('Oler', () => elegirDeLista('Oler a…', olibles.map(p => [p.nombre, () => { const r = zOler(G, p.id); if (r.ok) modal('Mano de ' + p.nombre, r.mano.length ? '<ul>' + r.mano.map(x => `<li>${x}</li>`).join('') + '</ul>' : '<p>Nada.</p>', [['Cerrar', () => tras()]]); else tras(r); }])), !olibles.length || G.zturno.acciones <= 0);
-  b('Ocultarse', () => tras(zOcultar(G)), !z || z.oculto || G.zturno.acciones <= 0 || !zombisEn(G, z.pos).some(x => x.tipo === 'caminante'));
-  acc.append(el('button', { class: 'primario', onclick: () => { zTerminar(G); UI.modo = 'mover'; tras(); } }, 'Terminar'));
+  const presas = z ? jugadoresEn(G, z.pos) : []; b('Atacar', () => elegirDeLista('Atacar a…', presas.map(p => [p.nombre, () => tras(M.zAtacar(G, p.id))])), !presas.length || G.zturno.acciones <= 0);
+  const olibles = z ? vivos(G).filter(p => dist(p.pos, z.pos) <= 3) : []; b('Oler', () => elegirDeLista('Oler a…', olibles.map(p => [p.nombre, () => Promise.resolve(M.zOler(G, p.id)).then(r => { if (r.ok) modal('Mano de ' + p.nombre, r.mano.length ? '<ul>' + r.mano.map(x => `<li>${x}</li>`).join('') + '</ul>' : '<p>Nada.</p>', [['Cerrar', () => tras()]]); else tras(r); })])), !olibles.length || G.zturno.acciones <= 0);
+  b('Ocultarse', () => tras(M.zOcultar(G)), !z || z.oculto || G.zturno.acciones <= 0 || !zombisEn(G, z.pos).some(x => x.tipo === 'caminante'));
+  acc.append(el('button', { class: 'primario', onclick: () => { UI.modo = 'mover'; tras(M.zTerminar(G)); } }, 'Terminar'));
   panel.append(acc, el('p', { class: 'muted small ayuda' }, 'Ganas cuando más de la mitad del equipo esté convertido o muerto. Oculto entre caminantes nadie puede atacarte. Puedes hablar y mentir en la mesa.'));
   root.querySelector('.mano').innerHTML = ''; dibujar();
 }
@@ -1025,10 +1132,10 @@ function fin() { mostrar('fin'); const c = $('#p-fin .cont'); c.innerHTML = ''; 
   const min = UI.inicio ? Math.round((Date.now() - UI.inicio) / 60000) : null; const S = G.stats; const hc = G.opciones && G.opciones.hardcoreTardio ? 'tardío' : 'inmediato';
   const informe = [`Misión: ${MISIONES[G.misionId].nombre}`, `Jugadores: ${G.jugadores.length}`, `Personajes: ${G.jugadores.map(j => PERSONAJES[j.personajeId].nombre.split(' ')[0]).join(', ')}`, `Variante hardcore: ${hc}`, `Resultado: ${F.resultado}`, `Motivo: ${F.motivo}`, `Rondas: ${G.ronda}`, min != null ? `Duración: ${min} min` : null, `Primera horda: ${G.banderas.primeraHorda ? 'ronda ' + G.banderas.primeraHorda : 'ninguna'}`, `Hordas: ${S.hordas || 0}`, `Mordiscos: ${S.mordiscos || 0} (fase ${S.mordisco_fase || 0}, combate ${S.mordisco_combate || 0}, dado ${S.mordisco_dado || 0})`, `Conversiones: ${S.conversiones || 0}`, `Crafteos: ${S.crafteos || 0}`, `Curas: ${S.curas || 0}`, `Ruido final: ${G.ruido}/${G.escalado.ruidoTope}`, `Semilla: ${G.semilla >>> 0}`].filter(Boolean).join('\n');
   const ta = el('textarea', { readonly: true, class: 'informe' }); ta.value = informe;
-  c.append(t, el('h2', {}, 'Informe para el cuaderno de pruebas'), el('p', { class: 'muted small' }, 'Cópialo y pégalo en el cuaderno: rellena los campos solo.'), ta, el('div', { class: 'acciones' }, el('button', { onclick: () => { ta.select(); try { navigator.clipboard.writeText(informe).then(() => toast('Informe copiado')); } catch (e) { toast('Selecciona el texto y cópialo'); } } }, 'Copiar informe'), el('button', { class: 'mini', onclick: verLog }, 'Ver registro')), el('button', { class: 'primario ancho', onclick: () => { try { localStorage.removeItem(CLAVE); } catch (e) { } G = null; inicio(); } }, 'Nueva partida')); }
+  c.append(t, el('h2', {}, 'Informe para el cuaderno de pruebas'), el('p', { class: 'muted small' }, 'Cópialo y pégalo en el cuaderno: rellena los campos solo.'), ta, el('div', { class: 'acciones' }, el('button', { onclick: () => { ta.select(); try { navigator.clipboard.writeText(informe).then(() => toast('Informe copiado')); } catch (e) { toast('Selecciona el texto y cópialo'); } } }, 'Copiar informe'), el('button', { class: 'mini', onclick: verLog }, 'Ver registro')), el('button', { class: 'primario ancho', onclick: () => { try { localStorage.removeItem(CLAVE); } catch (e) { } if (RED.activa) redOlvidar(); G = null; inicio(); } }, 'Nueva partida')); }
 
 /* ---------- tablero ---------- */
-const canvas = () => $('#p-' + (UI.pantalla === 'zombi' ? 'zombi' : 'juego') + ' canvas');
+const canvas = () => $('#p-' + (['zombi', 'espera'].includes(UI.pantalla) ? UI.pantalla : 'juego') + ' canvas');
 function ajustarCanvas() { const cv = canvas(); if (!cv) return; const r = cv.parentElement.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.floor(r.width * dpr); cv.height = Math.floor(r.height * dpr); cv._dpr = dpr; if (!UI.cam.ajustada) { encuadrar(); } }
 function encuadrar() { const cv = canvas(); if (!cv || !G) return; let minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9; for (const c of Object.values(G.casillas)) { const [x, y] = pixel(c.k); minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); } const s = Math.min(cv.width / (maxx - minx + 2.2), cv.height / (maxy - miny + 2.4)); UI.cam = { s, x: cv.width / 2 - s * (minx + maxx) / 2, y: cv.height / 2 - s * (miny + maxy) / 2, ajustada: true }; }
 const COL = { calle: '#4a4d47', edificio: '#6a6152', bosque: '#3f4d33', gasolinera: '#7a5a2e', farmacia: '#6e4a4a', taller: '#5b5a6a', refugio: '#7a3a2a', entrada: '#5a2d2d', helipuerto: '#3d5a6a', torre: '#3d5a6a', laboratorio: '#4a3d6a', generador: '#6a5a2a', oculta: '#22241f' };
@@ -1059,7 +1166,7 @@ function dibujar() {
   for (const ar of G.barricadas) { const [a, b] = ar.split('|'); const i = vecinos(a).indexOf(b); if (i < 0) continue; const [px, py] = pixel(a, s); const x = ox + px, y = oy + py; const a1 = Math.PI / 6 + (i + 4) * Math.PI / 3, a2 = a1 + Math.PI / 3; ctx.beginPath(); ctx.moveTo(x + rr * Math.cos(a1), y + rr * Math.sin(a1)); ctx.lineTo(x + rr * Math.cos(a2), y + rr * Math.sin(a2)); ctx.stroke(); }
   for (const k of [...dest, ...zdest]) { const [px, py] = pixel(k, s); hexPath(ctx, ox + px, oy + py, rr - s * 0.08); ctx.lineWidth = Math.max(2, s * 0.12); ctx.strokeStyle = dest.has(k) ? (UI.modo === 'mover' ? '#9db060' : '#e0b43a') : '#c9553d'; ctx.stroke(); }
   if (UI.modo === 'zhorda_dest' && UI.zSel && G.zombis[UI.zSel]) { const [px, py] = pixel(G.zombis[UI.zSel].pos, s); hexPath(ctx, ox + px, oy + py, rr - s * 0.08); ctx.strokeStyle = '#e0b43a'; ctx.stroke(); }
-  for (const z of Object.values(G.zombis)) { const c = G.casillas[z.pos]; if (!c.revelada) continue; if (z.tipo === 'jugador' && z.oculto && G.fase !== 'zombi') continue; const [px, py] = pixel(z.pos, s); const x = ox + px + s * 0.3, y = oy + py + s * 0.25; const r = s * (esHorda(z) ? 0.42 : 0.32);
+  for (const z of Object.values(G.zombis)) { const c = G.casillas[z.pos]; if (!c.revelada) continue; if (z.tipo === 'jugador' && z.oculto && !(G.fase === 'zombi' && (!RED.activa || RED.asiento === z.jugadorId))) continue; const [px, py] = pixel(z.pos, s); const x = ox + px + s * 0.3, y = oy + py + s * 0.25; const r = s * (esHorda(z) ? 0.42 : 0.32);
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = z.tipo === 'jugador' ? '#8fa86a' : z.tipo === 'acorazado' ? '#3a3f4a' : z.tipo === 'corredor' ? '#7a5a3a' : z.tipo === 'nino' ? '#6a5a6a' : '#4f5a3a'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = z.oculto ? '#e0b43a' : '#c9553d'; ctx.stroke();
     ctx.fillStyle = '#e6e3da'; ctx.font = `bold ${r * 1.1}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(z.n > 1 ? ZOMBIS[z.tipo].letra + z.n : ZOMBIS[z.tipo].letra, x, y); }
   for (const j of G.jugadores) { if (!['vivo', 'caido'].includes(j.estado)) continue; if (j.pasajeroDe != null) continue; const [px, py] = pixel(j.pos, s); const compa = jugadoresEn(G, j.pos).filter(x => x.pasajeroDe == null); const i = compa.indexOf(j); const ang = compa.length > 1 ? (i / compa.length) * Math.PI * 2 : 0; const off = compa.length > 1 ? s * 0.32 : 0;
@@ -1072,16 +1179,16 @@ function tocar(k) {
   if (!k) return;
   if (G.fase === 'turno') {
     const j = turnoActual(G);
-    if (UI.modo === 'molotov') { const m = j.mano.find(cc => cc.id === 'molotov'); UI.modo = 'mover'; tras(m ? usar(G, m.uid, k) : { ok: false }); return; }
-    if (UI.modo === 'barricada') { const m = j.mano.find(cc => cc.id === 'barricada'); UI.modo = 'mover'; tras(m ? usar(G, m.uid, k) : { ok: false }); return; }
-    if (UI.modo === 'rastreo') { const r = rastrear(G, k); if (r.ok) UI.modo = 'mover'; tras(r); return; }
-    if (destinosPosibles(G).includes(k)) { tras(mover(G, k)); return; }
+    if (UI.modo === 'molotov') { const m = j.mano.find(cc => cc.id === 'molotov'); UI.modo = 'mover'; tras(m ? M.usar(G, m.uid, k) : { ok: false }); return; }
+    if (UI.modo === 'barricada') { const m = j.mano.find(cc => cc.id === 'barricada'); UI.modo = 'mover'; tras(m ? M.usar(G, m.uid, k) : { ok: false }); return; }
+    if (UI.modo === 'rastreo') { Promise.resolve(M.rastrear(G, k)).then(r => { if (r.ok) UI.modo = 'mover'; tras(r); }); return; }
+    if (destinosPosibles(G).includes(k)) { tras(M.mover(G, k)); return; }
     const objs = objetivosAtaque(G).filter(o => o.z.pos === k); if (objs.length && G.turno.acciones > 0) { elegirAtaque(objs); return; }
     info(k);
   } else if (G.fase === 'zombi') {
-    if (UI.modo === 'zmover') { const r = zMover(G, k); if (!r.ok) info(k); else tras(r); return; }
+    if (UI.modo === 'zmover') { Promise.resolve(M.zMover(G, k)).then(r => { if (!r.ok) info(k); else tras(r); }); return; }
     if (UI.modo === 'zhorda_sel') { const zs = zombisEn(G, k).filter(z => z.tipo !== 'jugador'); if (!zs.length) { info(k); return; } UI.zSel = zs.sort((a, b) => b.n - a.n)[0].id; UI.modo = 'zhorda_dest'; toast('Ahora toca la casilla de destino'); dibujar(); return; }
-    if (UI.modo === 'zhorda_dest') { const r = zMoverHorda(G, UI.zSel, k); UI.modo = 'zhorda_sel'; UI.zSel = null; tras(r); return; }
+    if (UI.modo === 'zhorda_dest') { const p = M.zMoverHorda(G, UI.zSel, k); UI.modo = 'zhorda_sel'; UI.zSel = null; tras(p); return; }
   }
 }
 function info(k) { const c = G.casillas[k]; if (!c.revelada) { modal('Loseta oculta', '<p>Se revela al entrar. Puede haber zombis.</p>'); return; } const zs = zombisEn(G, k).filter(z => !(z.tipo === 'jugador' && z.oculto)).map(z => `${ZOMBIS[z.tipo].nombre}${z.n > 1 ? ' ×' + z.n : ''}${esHorda(z) ? ' (horda)' : ''}`); const js = jugadoresEn(G, k).map(j => `${j.nombre} (${PERSONAJES[j.personajeId].alias})`);
@@ -1107,7 +1214,7 @@ window.addEventListener('resize', () => { UI.cam.ajustada = false; ajustarCanvas
 document.querySelectorAll('canvas').forEach(gestos);
 document.querySelectorAll('.encuadrar').forEach(b => b.addEventListener('click', () => { encuadrar(); dibujar(); }));
 $('#modal-fondo').addEventListener('click', e => { if (e.target.id === 'modal-fondo') cerrarModal(); });
-if (cargar()) reanudar(); else inicio();
+if (!redReanudar()) { if (cargar()) reanudar(); else inicio(); }
 
 </script>
 
