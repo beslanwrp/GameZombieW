@@ -4,7 +4,7 @@ export const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 2, recetasExtraInicio: 1,
 };
 
 export const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];
@@ -77,8 +77,8 @@ export const RECETAS = {
                  texto: 'Cuenta atrás: +2 turnos al mordido. Sin contagio: anula un mordisco de esta ronda.' },
   camuflaje:   { nombre: 'Camuflaje de vísceras', ing: ['visceras', 'poncho'], res: 'camuflaje',
                  texto: '2 turnos atravesando casillas con caminantes. Se anula con lluvia o al disparar.' },
-  barricada:   { nombre: 'Barricada', ing: ['tablas', 'clavos', 'chapa'], res: 'barricada',
-                 texto: 'Bloquea una arista de tu casilla. Las hordas tardan una ronda en derribarla (+1 ruido). Los supervivientes la cruzan.' },
+  barricada:   { nombre: 'Barricada', ing: ['tablas', 'chapa'], res: 'barricada',
+                 texto: 'Bloquea una arista de tu casilla. Solo una horda puede derribarla, y tarda una ronda (+1 ruido). Los supervivientes la cruzan.' },
   enlace:      { nombre: 'Enlace', ing: ['walkie', 'walkie', 'pilas'], res: 'enlace',
                  texto: 'Une a dos supervivientes 4 rondas: pueden darse cartas a distancia.' },
 };
@@ -137,9 +137,9 @@ export function cantidadObjetivo(M, n) { if (!M.cantidades) return M.cantidad; r
 export const MISIONES = {
   farmacia: { nombre: 'Farmacia Central', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 10,
     texto: 'Traed antibióticos al refugio (2, 3 o 4 según el tamaño del grupo). Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
-    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, kit: ['botiquin'] },
+    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, farmaciasSoloAntibioticos: true, kit: ['botiquin'] },
   sin_gota: { nombre: 'Sin una gota', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10,
-    texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.',
+    texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule antes de la noche siguiente (con cura o descansando en el refugio) hace fracasar la misión.',
     objetivo: 'todos_helipuerto', especial: 'helipuerto', kit: ['antibioticos'] },
   granja:   { nombre: 'La granja', etiquetas: ['HC', 'R'], contagio: 'hardcore', rondas: 12,
     texto: 'Conseguid las semillas (llegan por evento) y bidones (1 o 2 según el grupo), dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
@@ -150,27 +150,27 @@ export const MISIONES = {
   convoy:   { nombre: 'El convoy', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 9,
     texto: 'Craftead vehículos con depósito y sacad de la ciudad a bordo a 2, 4 o 6 supervivientes según el tamaño del grupo. Empezáis con un coche, una moto y un bidón.',
     objetivo: 'convoy', cantidades: { 3: 2, 6: 4, 10: 6 }, kit: [['coche', 'bidon'], ['moto', 'bidon']] },
-  cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 8,
-    texto: 'Levantad barricadas en las aristas del refugio (3, 4 o 6 según el tamaño del grupo) antes de la ronda 8 sin un solo contagio. Empezáis con materiales para dos.',
-    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 4, 10: 6 }, kit: [['tablas', 'chapa', 'clavos'], ['tablas', 'chapa', 'clavos'], 'antibioticos'] },
+  cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10, tallerMateriales: ['tablas', 'chapa'],
+    texto: 'Levantad barricadas en las aristas del refugio (3 o 4 según el tamaño del grupo) antes de la ronda 10 sin un solo contagio. Empezáis con materiales para dos y los talleres guardan tablas y chapa.',
+    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 3, 10: 4 }, kit: [['tablas', 'chapa'], ['tablas', 'chapa'], 'antibioticos'] },
   invierno: { nombre: 'Invierno', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 10,
-    texto: 'Acumulad comida en el refugio (4, 6 o 10 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
-    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 10 }, kit: ['comida', 'comida'] },
+    texto: 'Acumulad comida en el refugio (4, 6 u 8 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 8 }, kit: ['comida', 'comida'] },
   deposito: { nombre: 'El depósito', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 12,
     texto: 'Llevad los bidones de gasolina al generador del norte (2, 3 o 4 según el tamaño del grupo).',
     objetivo: 'deposito', especial: 'generador', cantidades: { 3: 2, 6: 3, 10: 4 }, kit: ['bidon'] },
   ultima:   { nombre: 'Última llamada', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 12,
-    texto: 'Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.',
-    objetivo: 'sobrevivir', hordaDesde: 6 },
+    texto: 'Defended el refugio: al caer la noche 12, al menos la mitad del equipo debe estar viva en el refugio o pegada a él. Desde la ronda 6, cada dos noches llega una carta de horda extra y los muertos os huelen desde cualquier punto del mapa. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'sobrevivir', hordaDesde: 6, hordaCada: 2, percepcion: 99, enRefugio: 1 },
   suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 12,
     texto: 'Recoged los suministros marcados de las losetas de borde (3, 4 o 5 según el tamaño del grupo).',
     objetivo: 'suministros', cantidades: { 3: 3, 6: 4, 10: 5 }, suministros: 5, kit: [['moto', 'bidon']] },
-  cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
+  cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 14,
     texto: 'Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.',
     objetivo: 'cero', kit: ['antibioticos', 'antibioticos'] },
-  protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['HC', 'SC', 'T'], contagio: 'ambos', rondas: 12,
-    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión. Empezáis con un rifle y un silenciador.',
-    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']] },
+  protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
+    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio sin un solo contagio. Empezáis con un rifle y un silenciador.',
+    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']], zombisGarantizados: { acorazado: 1, corredor: 2 } },
 };
 
 export const EVENTOS = [
@@ -201,7 +201,7 @@ export const HORDAS = [
 // El tope de ruido crece con los jugadores: cada dado extra en la mesa es una cara de ruido más por ronda.
 export function escalado(n) {
   const ruidoTope = PARAMS.ruidoTopeBase + Math.max(0, n - 4); const base = { ruidoTope, ruidoTrasHorda: Math.max(1, ruidoTope - PARAMS.ruidoTrasHordaResta) };
-  if (n <= 3) return { ...base, horda: 3, extraLoseta: 0, ruidoInicial: 2 };
+  if (n <= 3) return { ...base, horda: 4, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 6) return { ...base, horda: 5, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 8) return { ...base, horda: 7, extraLoseta: 1, ruidoInicial: 2 };
   return { ...base, horda: 9, extraLoseta: 1, ruidoInicial: 3 };

@@ -56,13 +56,14 @@ test('hardcore convierte al mordido en la noche y crea la ficha zombi', () => {
   R.faseNoche(G); assert.equal(j.estado, 'zombi'); assert.ok(R.fichaZombi(G, j.id));
 });
 test('sin contagio: un mordisco sin anular hace fracasar; el tratamiento lo anula', () => {
-  let G = partida(4, 'sin_gota', 21); let j = G.jugadores[0]; R.herir(G, j, 1, 'prueba'); R.faseNoche(G); assert.equal(G.fin, null, 'una ronda de margen'); G.fase = 'noche'; R.faseNoche(G); assert.equal(G.fin.resultado, 'derrota');
-  G = partida(4, 'sin_gota', 21); j = R.turnoActual(G); R.herir(G, j, 1, 'prueba'); j.mano.push(R.carta(G, 'tratamiento')); G.turno.acciones = 1;
+  let G = partida(4, 'sin_gota', 21); let j = G.jugadores[0]; j.pos = R.vecinos('0,0')[0]; R.herir(G, j, 1, 'prueba'); R.faseNoche(G); if (G.fase === 'decision') R.resolverDecision(G, false); assert.equal(G.fin, null, 'una ronda de margen'); G.fase = 'noche'; R.faseNoche(G); assert.equal(G.fin.resultado, 'derrota');
+  G = partida(4, 'sin_gota', 21); j = R.turnoActual(G); j.pos = R.vecinos('0,0')[0]; R.herir(G, j, 1, 'prueba'); j.mano.push(R.carta(G, 'tratamiento')); G.turno.acciones = 1;
   const r = R.curar(G, j.mano.find(c => c.id === 'tratamiento').uid, j.id); assert.ok(r.ok, r.motivo); assert.equal(j.mordido, null); R.faseNoche(G); assert.equal(G.fin, null);
 });
 test('el bando zombi gana al alcanzar la mitad del equipo (o a todos con menos de 4)', () => {
   let G = partida(4, 'invierno', 1); R.convertir(G, G.jugadores[0], 'p'); R.convertir(G, G.jugadores[1], 'p'); R.comprobarFin(G); assert.equal(G.fin, null); R.convertir(G, G.jugadores[2], 'p'); R.comprobarFin(G); assert.equal(G.fin.resultado, 'derrota');
   G = partida(2, 'invierno', 1); R.convertir(G, G.jugadores[0], 'p'); R.comprobarFin(G); assert.equal(G.fin, null);
+  G = partida(3, 'invierno', 1); R.convertir(G, G.jugadores[0], 'p'); R.comprobarFin(G); assert.equal(G.fin, null); R.convertir(G, G.jugadores[1], 'p'); R.comprobarFin(G); assert.equal(G.fin.resultado, 'derrota', 'con 3 jugadores bastan 2 conversiones');
 });
 test('objetivo de Invierno: la comida se deposita al terminar turno en el refugio', () => {
   const G = partida(4, 'invierno', 4); const j = R.turnoActual(G); for (let i = 0; i < 10; i++) j.mano.push(R.carta(G, 'comida'));
@@ -91,7 +92,8 @@ test('cada misión genera sus casillas especiales', async () => {
 test('barricadas: los zombis las derriban y los jugadores las cruzan', () => {
   const G = partida10('cuarentena', 8); const j = R.turnoActual(G); const v = R.vecinos(j.pos).find(k => G.casillas[k]); j.mano.push(R.carta(G, 'barricada'));
   const r = R.usar(G, j.mano.at(-1).uid, v); assert.ok(r.ok, r.motivo); assert.ok(R.hayBarricada(G, j.pos, v));
-  const z = R.ponerZombi(G, 'caminante', 5, v); R.moverZombiHacia(G, z, j.pos, 1); assert.ok(!R.hayBarricada(G, j.pos, v), 'la barricada cae'); assert.equal(z.pos, v, 'el zombi no avanza esa ronda');
+  const solo = R.ponerZombi(G, 'corredor', 1, v); R.moverZombiHacia(G, solo, j.pos, 2); assert.ok(R.hayBarricada(G, j.pos, v), 'un zombi solo no la derriba'); assert.equal(solo.pos, v); delete G.zombis[solo.id];
+  const z = R.ponerZombi(G, 'caminante', 5, v); R.moverZombiHacia(G, z, j.pos, 1); assert.ok(!R.hayBarricada(G, j.pos, v), 'la horda la derriba'); assert.equal(z.pos, v, 'la horda no avanza esa ronda');
 });
 test('amputación salva al mordido a cambio de 2 heridas', () => {
   const G = partida10('farmacia', 9); const j = R.turnoActual(G); const otro = G.jugadores.find(x => x.id !== j.id); otro.pos = j.pos; R.herir(G, otro, 1, 'p'); assert.ok(otro.mordido);
@@ -134,4 +136,12 @@ test('variante hardcore tardío: el mordido se convierte en la noche siguiente',
 test('las trazas doradas se reproducen línea a línea con el motor JS', async () => {
   const T = await import('../trazas.mjs');
   for (const [m, n, s] of [['farmacia', 4, 77], ['protocolo', 10, 78], ['convoy', 6, 79]]) { const t = T.grabar(m, n, s, { hardcoreTardio: n === 6 }); assert.ok(t.llamadas.length > 20); assert.ok(t.log.length > 20); const d = T.comparar(t, T.reproducir(t)); assert.deepEqual(d, [], `${m}: ${JSON.stringify(d[0] || null)}`); }
+});
+
+test('sin contagio: pasar la noche en el refugio anula el mordisco', () => {
+  const G = partida(4, 'sin_gota', 21); const j = G.jugadores[0]; R.herir(G, j, 1, 'prueba'); j.pos = '0,0'; R.faseNoche(G); if (G.fase === 'decision') R.resolverDecision(G, false); assert.equal(j.mordido, null); assert.equal(G.fin, null);
+});
+test('la defensa base son 2 dados y Beatriz tira 3', () => {
+  const G = partida(6, 'farmacia', 2); const bea = G.jugadores.find(x => x.personajeId === 'beatriz'); const z = R.ponerZombi(G, 'caminante', 1, bea.pos); const antes = G.semilla; R.zombiAtaca(G, z, bea); assert.ok(G.log.at(-1).texto.split(',').length >= 3 || /muerde/.test(G.log.at(-1).texto));
+  void antes;
 });

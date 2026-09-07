@@ -27,15 +27,15 @@ Tira los dados del arma (sin arma, 1). Si los impactos igualan o superan la fuer
 
 ## Defensa
 
-Cuando un zombi entra en tu casilla tiras 1 dado (Beatriz 2). Paso o doble paso: esquivas. Ruido: esquivas con +1 ruido. Mordisco: 1 herida (2 si es una horda) y quedas **mordido**. A 0 de vida caes; te levantan con una acción o pierdes tu siguiente turno. Si una horda te alcanza en el suelo, te conviertes.
+Cuando un zombi entra en tu casilla tiras 2 dados (Beatriz 3). Si sale algún paso o doble paso, esquivas. Si solo hay ruido, esquivas con +1 ruido. Si todo es mordisco: 1 herida (2 si es una horda) y quedas **mordido**. A 0 de vida caes; te levantan con una acción o pierdes tu siguiente turno. Si una horda te alcanza en el suelo, te conviertes.
 
 ## Contagio
 
-La misión fija la regla. **Cuenta atrás**: 4 turnos para curarte con Tratamiento (+2, Naima +3), antibióticos (+1) o amputación (2 heridas, tus dobles pasos valen 1). **Sin contagio**: hasta la noche siguiente para anularlo con antibióticos, Tratamiento o amputación; si no, la misión fracasa. **Hardcore**: te conviertes al caer la noche, o en la noche siguiente si se juega con la variante tardía.
+La misión fija la regla. **Cuenta atrás**: 4 turnos para curarte con Tratamiento (+2, Naima +3), antibióticos (+1) o amputación (2 heridas, tus dobles pasos valen 1). **Sin contagio**: hasta la noche siguiente para anularlo con antibióticos, Tratamiento, amputación o pasando la noche en el refugio; si no, la misión fracasa. **Hardcore**: te conviertes al caer la noche, o en la noche siguiente si se juega con la variante tardía.
 
 ## Jugador zombi
 
-Actúa después de los zombis con 2 acciones: empujar una horda o zombi 1 casilla, mover su ficha (2 casillas a partir del nivel 1), atacar a quien esté en su casilla, oler la mano de alguien a 3 casillas, ocultarse entre caminantes (nadie puede atacarle). Si un superviviente se convierte a su lado, recluta: entra una carta de horda extra. Gana cuando más de la mitad del equipo esté convertido o muerto.
+Actúa después de los zombis con 2 acciones: empujar una horda o zombi 1 casilla, mover su ficha (2 casillas a partir del nivel 1), atacar a quien esté en su casilla, oler la mano de alguien a 3 casillas, ocultarse entre caminantes (nadie puede atacarle). Si un superviviente se convierte a su lado, recluta: entra una carta de horda extra. Gana cuando más de la mitad del equipo esté convertido o muerto (con 3 jugadores, 2; con 2, ambos).
 
 ## Ruido
 

@@ -84,11 +84,10 @@
     "nombre": "Barricada",
     "ing": [
       "tablas",
-      "clavos",
       "chapa"
     ],
     "res": "barricada",
-    "texto": "Bloquea una arista de tu casilla. Las hordas tardan una ronda en derribarla (+1 ruido). Los supervivientes la cruzan."
+    "texto": "Bloquea una arista de tu casilla. Solo una horda puede derribarla, y tarda una ronda (+1 ruido). Los supervivientes la cruzan."
   },
   "enlace": {
     "nombre": "Enlace",

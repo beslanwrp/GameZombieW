@@ -14,6 +14,7 @@
       "10": 4
     },
     "farmacias": 2,
+    "farmaciasSoloAntibioticos": true,
     "kit": [
       "botiquin"
     ]
@@ -26,7 +27,7 @@
     ],
     "contagio": "sin_contagio",
     "rondas": 10,
-    "texto": "Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.",
+    "texto": "Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule antes de la noche siguiente (con cura o descansando en el refugio) hace fracasar la misión.",
     "objetivo": "todos_helipuerto",
     "especial": "helipuerto",
     "kit": [
@@ -105,24 +106,26 @@
       "T"
     ],
     "contagio": "sin_contagio",
-    "rondas": 8,
-    "texto": "Levantad barricadas en las aristas del refugio (3, 4 o 6 según el tamaño del grupo) antes de la ronda 8 sin un solo contagio. Empezáis con materiales para dos.",
+    "rondas": 10,
+    "tallerMateriales": [
+      "tablas",
+      "chapa"
+    ],
+    "texto": "Levantad barricadas en las aristas del refugio (3 o 4 según el tamaño del grupo) antes de la ronda 10 sin un solo contagio. Empezáis con materiales para dos y los talleres guardan tablas y chapa.",
     "objetivo": "cuarentena",
     "cantidades": {
       "3": 3,
-      "6": 4,
-      "10": 6
+      "6": 3,
+      "10": 4
     },
     "kit": [
       [
         "tablas",
-        "chapa",
-        "clavos"
+        "chapa"
       ],
       [
         "tablas",
-        "chapa",
-        "clavos"
+        "chapa"
       ],
       "antibioticos"
     ]
@@ -135,12 +138,12 @@
     ],
     "contagio": "hardcore",
     "rondas": 10,
-    "texto": "Acumulad comida en el refugio (4, 6 o 10 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.",
+    "texto": "Acumulad comida en el refugio (4, 6 u 8 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.",
     "objetivo": "comida_refugio",
     "cantidades": {
       "3": 4,
       "6": 6,
-      "10": 10
+      "10": 8
     },
     "kit": [
       "comida",
@@ -174,9 +177,12 @@
     ],
     "contagio": "hardcore",
     "rondas": 12,
-    "texto": "Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.",
+    "texto": "Defended el refugio: al caer la noche 12, al menos la mitad del equipo debe estar viva en el refugio o pegada a él. Desde la ronda 6, cada dos noches llega una carta de horda extra y los muertos os huelen desde cualquier punto del mapa. Un mordisco convierte al terminar la ronda.",
     "objetivo": "sobrevivir",
-    "hordaDesde": 6
+    "hordaDesde": 6,
+    "hordaCada": 2,
+    "percepcion": 99,
+    "enRefugio": 1
   },
   "suministros": {
     "nombre": "Los suministros del puente",
@@ -208,7 +214,7 @@
       "T"
     ],
     "contagio": "sin_contagio",
-    "rondas": 12,
+    "rondas": 14,
     "texto": "Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.",
     "objetivo": "cero",
     "kit": [
@@ -219,13 +225,12 @@
   "protocolo": {
     "nombre": "Protocolo Z-2099",
     "etiquetas": [
-      "HC",
       "SC",
       "T"
     ],
-    "contagio": "ambos",
+    "contagio": "sin_contagio",
     "rondas": 12,
-    "texto": "Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión. Empezáis con un rifle y un silenciador.",
+    "texto": "Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio sin un solo contagio. Empezáis con un rifle y un silenciador.",
     "objetivo": "protocolo",
     "especial": "laboratorio",
     "muestras": true,
@@ -234,6 +239,10 @@
         "rifle",
         "silenciador"
       ]
-    ]
+    ],
+    "zombisGarantizados": {
+      "acorazado": 1,
+      "corredor": 2
+    }
   }
 }

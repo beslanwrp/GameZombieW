@@ -43,4 +43,4 @@ python3 scripts/md2html.py docs/X.md "Título" > salida.html
 
 ## Estado (septiembre de 2026)
 
-M0 cerrado por parte del diseño: prototipo v0.3 jugable (cantidades por jugadores y kits de misión), simulador con bots razonables, informe de partidas simuladas (`docs/07`), trazas y datos exportados. Pendiente de los resultados de las pruebas de mesa (`docs/encuesta/cuaderno-de-pruebas.html`) para fijar parámetros, elegir la variante hardcore y redactar el documento de diseño v1.1. Después, corte vertical en Unity según `docs/06-plan-m1.md`.
+M0 cerrado por parte del diseño: prototipo v0.4 jugable (cantidades por jugadores, kits de misión, defensa de 2 dados y las propuestas del informe aplicadas), simulador con bots razonables, informe de partidas simuladas (`docs/07`), trazas y datos exportados. Pendiente de los resultados de las pruebas de mesa (`docs/encuesta/cuaderno-de-pruebas.html`) para fijar parámetros, elegir la variante hardcore y redactar el documento de diseño v1.1. Después, corte vertical en Unity según `docs/06-plan-m1.md`.

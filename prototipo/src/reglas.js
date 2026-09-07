@@ -41,7 +41,7 @@ export const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
-    recetasConocidas: [...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
+    recetasConocidas: [...new Set([...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
   const esc = escalado(jugadores.length); G.escalado = esc; G.ruido = esc.ruidoInicial;
   const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length);
@@ -59,6 +59,7 @@ export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   G.mazoEventos = barajar(G, EVENTOS.map((e, i) => i).filter(i => EVENTOS[i].id !== 'semillas'));
   if (M.semillas) { const idx = EVENTOS.findIndex(e => e.id === 'semillas'); G.mazoEventos.splice(G.mazoEventos.length - 1, 0, idx); } // sale en la ronda 4
   generarTablero(G, M);
+  for (let i = 0; i < PARAMS.recetasExtraInicio; i++) { const libres = Object.keys(RECETAS).filter(r => !G.recetasConocidas.includes(r)); if (libres.length) { const r = elegir(G, libres); G.recetasConocidas.push(r); log(G, `El grupo conoce además la receta: ${RECETAS[r].nombre}.`); } }
   log(G, `Misión: ${M.nombre}. ${M.texto}`, 'mision');
   iniciarRonda(G);
   return G;
@@ -87,6 +88,7 @@ export function generarTablero(G, M) {
   const revelarLosetaDe = k => { for (const c of Object.values(C)) if (c.loseta === C[k].loseta) c.revelada = true; };
   if (M.especial === 'helipuerto' || M.especial === 'torre' || M.especial === 'laboratorio') { const cand = borde.filter(c => !c.revelada && c.tipo !== 'entrada'); const h = elegir(G, cand); h.tipo = M.especial; G.especiales[M.especial] = h.k; revelarLosetaDe(h.k); }
   if (M.especial === 'generador') { const norte = Object.values(C).filter(c => !c.revelada).sort((a, b) => dist(a.k, '0,-5') - dist(b.k, '0,-5'))[0]; norte.tipo = 'generador'; G.especiales.generador = norte.k; revelarLosetaDe(norte.k); }
+  if (M.zombisGarantizados) { const cand = barajar(G, Object.values(C).filter(c => !c.revelada && c.tipo !== 'entrada' && !vecinos(c.k).some(v => !C[v]))); for (const [tipo, n] of Object.entries(M.zombisGarantizados)) for (let i = 0; i < n && cand.length; i++) ponerZombi(G, tipo, 1, cand.pop().k); }
   if (M.suministros) { const cand = barajar(G, borde.filter(c => !c.revelada && c.tipo !== 'entrada')); const porLoseta = new Set(); let n = 0; for (const c of cand) { if (porLoseta.has(c.loseta)) continue; porLoseta.add(c.loseta); c.objetos.push('suministro'); c.marca = 'suministro'; if (++n >= M.suministros) break; } }
 }
 
@@ -201,8 +203,8 @@ export function saquear(G) {
   const n = j.personajeId === 'ruy' ? 2 : 1; const obtenidos = [];
   for (let i = 0; i < n; i++) {
     let id; if (c.tipo === 'gasolinera') { id = 'bidon'; if (i === 0) subirRuido(G, 1, 'saquear la gasolinera'); }
-    else if (c.tipo === 'farmacia') id = c.saqueos % 2 ? 'antibioticos' : 'botiquin';
-    else if (c.tipo === 'taller') id = rnd(G) < .3 ? 'receta' : elegir(G, ['cinta', 'clavos', 'tubo', 'pilas', 'tablas', 'chapa']);
+    else if (c.tipo === 'farmacia') id = mision(G).farmaciasSoloAntibioticos || c.saqueos % 2 ? 'antibioticos' : 'botiquin';
+    else if (c.tipo === 'taller') id = rnd(G) < .3 ? 'receta' : elegir(G, mision(G).tallerMateriales || ['cinta', 'clavos', 'tubo', 'pilas', 'tablas', 'chapa']);
     else id = robarObjeto(G);
     if (id === 'receta') { const desconocidas = Object.keys(RECETAS).filter(r => !G.recetasConocidas.includes(r)); if (desconocidas.length) { const r = elegir(G, desconocidas); G.recetasConocidas.push(r); log(G, `${j.nombre} encuentra un recetario: ${RECETAS[r].nombre}.`, 'bien'); obtenidos.push('Recetario: ' + RECETAS[r].nombre); continue; } id = 'cinta'; }
     j.mano.push(carta(G, id)); obtenidos.push(OBJETOS[id].nombre);
@@ -263,7 +265,7 @@ export function herir(G, j, n, motivo, mordisco = true) {
 export function aplicarMordisco(G, j) {
   if (j.mordido) return; stat(G, 'mordiscos'); const regla = mision(G).contagio;
   if (regla === 'cuenta_atras') { j.mordido = { turnos: PARAMS.turnosContagio, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. ${PARAMS.turnosContagio} turnos para curarlo o amputar.`, 'peligro'); }
-  else if (regla === 'sin_contagio') { j.mordido = { sc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Si no se anula con antibióticos, Tratamiento o amputación antes de la próxima noche, la misión fracasa.`, 'peligro'); }
+  else if (regla === 'sin_contagio') { j.mordido = { sc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Si no se anula antes de la próxima noche con antibióticos, Tratamiento, amputación o pasando la noche en el refugio, la misión fracasa.`, 'peligro'); }
   else if (regla === 'ambos') { j.mordido = { sc: true, hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Sin cura antes de la próxima noche, la misión fracasa y además se convertirá.`, 'peligro'); }
   else if (G.opciones.hardcoreTardio) { j.mordido = { hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Se convertirá en la noche siguiente: una ronda para despedirse y repartir el inventario.`, 'peligro'); }
   else { j.mordido = { hc: true, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Al terminar la ronda se convertirá.`, 'peligro'); }
@@ -349,7 +351,7 @@ export function terminarTurno(G, forzar = false) {
 function depositar(G, j) {
   const c = G.casillas[j.pos]; const M = mision(G);
   const dejar = (id, clave, mult = 1) => { const cs = j.mano.filter(x => x.id === id); if (!cs.length) return; cs.forEach(x => quitarCarta(j, x.uid)); G.almacen[clave] += cs.length * mult; log(G, `${j.nombre} deja ${cs.length} ${OBJETOS[id].nombre.toLowerCase()} (${G.almacen[clave]}).`, 'bien'); };
-  if (c.tipo === 'refugio') { dejar('comida', 'comida', j.personajeId === 'omar' ? 2 : 1); dejar('antibioticos', 'antibioticos'); dejar('semillas', 'semillas'); if (M.objetivo === 'granja') dejar('bidon', 'bidon'); }
+  if (c.tipo === 'refugio') { if (M.objetivo === 'comida_refugio') dejar('comida', 'comida', j.personajeId === 'omar' ? 2 : 1); if (M.objetivo === 'antibioticos_refugio') dejar('antibioticos', 'antibioticos'); dejar('semillas', 'semillas'); if (M.objetivo === 'granja') dejar('bidon', 'bidon'); }
   if (c.tipo === 'generador') dejar('bidon', 'bidon');
   if (c.tipo === 'laboratorio') for (const t of ['caminante', 'corredor', 'acorazado']) { const m = j.mano.find(x => x.id === 'muestra_' + t); if (m) { quitarCarta(j, m.uid); G.banderas['muestra_' + t] = true; G.almacen.muestras++; log(G, `${j.nombre} entrega la muestra de ${t} (${G.almacen.muestras}/3).`, 'bien'); } }
 }
@@ -361,7 +363,7 @@ export function moverZombiHacia(G, z, objetivo, pasos) {
   for (let i = 0; i < pasos; i++) {
     if (z.pos === objetivo) break; const opciones = vecinos(z.pos).filter(v => D[v] != null && D[v] < (D[z.pos] ?? 1e9)); if (!opciones.length) break;
     const dest = opciones[entero(G, opciones.length)];
-    if (hayBarricada(G, z.pos, dest)) { G.barricadas = G.barricadas.filter(a => a !== arista(z.pos, dest)); subirRuido(G, 1, 'una barricada cae'); log(G, `${ZOMBIS[z.tipo].nombre}${z.n > 1 ? ' ×' + z.n : ''} derriba una barricada.`, 'peligro'); break; }
+    if (hayBarricada(G, z.pos, dest)) { if (!esHorda(z)) { log(G, `${ZOMBIS[z.tipo].nombre} se queda arañando una barricada.`); break; } G.barricadas = G.barricadas.filter(a => a !== arista(z.pos, dest)); subirRuido(G, 1, 'una barricada cae'); log(G, `${ZOMBIS[z.tipo].nombre} ×${z.n} derriba una barricada.`, 'peligro'); break; }
     z.pos = dest; movido++;
     const c = G.casillas[dest]; const js = jugadoresEn(G, dest);
     if (js.length) { for (const j of js) { if (j.personajeId === 'ruy' && adultoCon(G, j)) continue; if (j.estado === 'caido') { if (esHorda(z)) morirOConvertir(G, j, 'la horda alcanza a ' + j.nombre + ' en el suelo'); } else if (!(j.camuflaje > 0 && z.tipo === 'caminante')) zombiAtaca(G, z, j); } break; }
@@ -373,7 +375,7 @@ export function objetivoZombi(G, z) {
   const senuelos = Object.values(G.casillas).filter(c => c.senuelo > 0).map(c => c.k).filter(k => dist(k, z.pos) <= 3);
   if (senuelos.length) return senuelos.sort((a, b) => dist(a, z.pos) - dist(b, z.pos))[0];
   // Los zombis solo perciben supervivientes a PERCEPCION casillas; si no huelen a nadie, van hacia el refugio cuando el ruido es alto y si no se quedan.
-  const cand = vivos(G).filter(j => !(j.camuflaje > 0 && z.tipo === 'caminante')).filter(j => !(j.personajeId === 'ruy' && (esHorda(z) || adultoCon(G, j)))).filter(j => dist(j.pos, z.pos) <= PARAMS.percepcion);
+  const cand = vivos(G).filter(j => !(j.camuflaje > 0 && z.tipo === 'caminante')).filter(j => !(j.personajeId === 'ruy' && (esHorda(z) || adultoCon(G, j)))).filter(j => dist(j.pos, z.pos) <= (mision(G).percepcion || PARAMS.percepcion));
   if (!cand.length) return G.ruido >= G.escalado.ruidoTrasHorda && z.pos !== '0,0' ? '0,0' : null;
   cand.sort((a, b) => dist(a.pos, z.pos) - dist(b.pos, z.pos) || (a.personajeId === 'ceniza') - (b.personajeId === 'ceniza') || a.id - b.id); return cand[0].pos;
 }
@@ -422,7 +424,7 @@ export function faseNoche(G) {
   G.fase = 'noche'; const M = mision(G);
   subirRuido(G, PARAMS.ruidoPorNoche, 'cae la noche');
   if (G.ruido >= G.escalado.ruidoTope) { cartaHorda(G); G.ruido = G.escalado.ruidoTrasHorda; log(G, `El ruido baja a ${G.ruido}.`); }
-  if (M.hordaDesde && G.ronda >= M.hordaDesde && (G.ronda - M.hordaDesde) % 2 === 0) cartaHorda(G);
+  if (M.hordaDesde && G.ronda >= M.hordaDesde && (G.ronda - M.hordaDesde) % (M.hordaCada || 2) === 0) cartaHorda(G);
   if (G.ronda % 2 === 0) {
     const idx = robarEvento(G); const bea = G.jugadores.find(j => j.personajeId === 'beatriz' && j.estado === 'vivo');
     if (bea && !G.banderas.instintoEventoUsado) { G.fase = 'decision'; G.decision = { tipo: 'evento', jugadorId: bea.id, evento: idx }; return; }
@@ -440,7 +442,8 @@ function nocheB(G) {
   for (const j of vivos(G)) if (j.pos === '0,0' && j.estado === 'vivo' && j.vida < j.vidaMax) { j.vida++; log(G, `${j.nombre} descansa en el refugio (+1 vida).`, 'bien'); }
   for (const j of vivos(G)) { if (!j.mordido) continue;
     if (j.mordido.turnos != null) { j.mordido.turnos--; if (j.mordido.turnos <= 0) convertir(G, j, 'el contagio completa su curso'); else log(G, `${j.nombre}: ${j.mordido.turnos} turnos para la cura.`, 'peligro'); }
-    else { const vence = j.mordido.limite == null || G.ronda >= j.mordido.limite; if (!vence) { log(G, `${j.nombre}: última ronda para anular el contagio.`, 'peligro'); continue; } if (j.mordido.sc) G.fin = { resultado: 'derrota', motivo: `${j.nombre} no pudo anular el contagio. La misión exigía cero contagios.` }; if (j.mordido.hc) convertir(G, j, 'modo hardcore'); } }
+    else { if (j.mordido.sc && j.pos === '0,0' && j.estado === 'vivo') { j.mordido = null; j.curadoMordisco = true; stat(G, 'curas'); log(G, `${j.nombre} pasa la noche en el refugio y el mordisco no llega a infectar.`, 'bien'); continue; }
+      const vence = j.mordido.limite == null || G.ronda >= j.mordido.limite; if (!vence) { log(G, `${j.nombre}: última ronda para anular el contagio (cura o noche en el refugio).`, 'peligro'); continue; } if (j.mordido.sc) G.fin = { resultado: 'derrota', motivo: `${j.nombre} no pudo anular el contagio. La misión exigía cero contagios.` }; if (j.mordido.hc) convertir(G, j, 'modo hardcore'); } }
   for (const c of Object.values(G.casillas)) { if (c.fuego) c.fuego--; if (c.senuelo) c.senuelo--; }
   for (const j of G.jugadores) if (j.camuflaje) j.camuflaje--;
   G.enlaces = G.enlaces.map(e => ({ ...e, rondas: e.rondas - 1 })).filter(e => e.rondas > 0);
@@ -485,7 +488,7 @@ function aplicarEvento(G, idx) {
 export function comprobarFin(G, finRonda = false) {
   if (G.fin) return G.fin; const M = mision(G); const N = G.jugadores.length;
   const perdidos = G.jugadores.filter(j => j.estado === 'zombi' || j.estado === 'muerto').length;
-  const umbral = N >= 4 ? Math.floor(N / 2) + 1 : N; // más de la mitad del equipo
+  const umbral = N >= 4 ? Math.floor(N / 2) + 1 : N === 3 ? 2 : N; // más de la mitad; con 3 jugadores bastan 2; con 2, todos
   if (perdidos >= umbral) G.fin = { resultado: 'derrota', motivo: G.jugadores.some(j => j.estado === 'zombi') ? 'El bando zombi ha alcanzado a la mitad del equipo.' : 'No queda nadie en pie.' };
   const salidos = G.jugadores.filter(j => j.estado === 'salido').length; const enPie = vivos(G).length + salidos;
   if (!G.fin) {
@@ -502,7 +505,7 @@ export function comprobarFin(G, finRonda = false) {
     if (M.objetivo === 'torre' && G.progreso >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
     if (M.objetivo === 'todos_helipuerto') { const v = vivos(G); if (v.length && v.every(j => j.pos === G.especiales.helipuerto && j.estado === 'vivo')) G.fin = { resultado: 'victoria', motivo: 'Todo el equipo despega sin una gota de sangre infectada.' }; }
     if (!G.fin && G.ronda >= M.rondas) {
-      if (M.objetivo === 'sobrevivir') G.fin = enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${enPie} de ${N} responden a la última llamada.` } : { resultado: 'derrota', motivo: 'Demasiados caídos cuando llegó la última llamada.' };
+      if (M.objetivo === 'sobrevivir') { const cuenta = M.enRefugio ? vivos(G).filter(j => dist(j.pos, '0,0') <= (M.enRefugio === true ? 0 : M.enRefugio) && j.estado === 'vivo').length : enPie; G.fin = cuenta >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${cuenta} de ${N} responden a la última llamada desde el refugio.` } : { resultado: 'derrota', motivo: `Solo ${cuenta} de ${N} estaban en pie dentro del refugio cuando llegó la última llamada.` }; }
       else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= G.cantidad && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
       else G.fin = { resultado: 'derrota', motivo: 'Se agotaron las rondas.' };
     }

@@ -122,7 +122,7 @@ const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 2, recetasExtraInicio: 1,
 };
 
 const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];
@@ -195,8 +195,8 @@ const RECETAS = {
                  texto: 'Cuenta atrás: +2 turnos al mordido. Sin contagio: anula un mordisco de esta ronda.' },
   camuflaje:   { nombre: 'Camuflaje de vísceras', ing: ['visceras', 'poncho'], res: 'camuflaje',
                  texto: '2 turnos atravesando casillas con caminantes. Se anula con lluvia o al disparar.' },
-  barricada:   { nombre: 'Barricada', ing: ['tablas', 'clavos', 'chapa'], res: 'barricada',
-                 texto: 'Bloquea una arista de tu casilla. Las hordas tardan una ronda en derribarla (+1 ruido). Los supervivientes la cruzan.' },
+  barricada:   { nombre: 'Barricada', ing: ['tablas', 'chapa'], res: 'barricada',
+                 texto: 'Bloquea una arista de tu casilla. Solo una horda puede derribarla, y tarda una ronda (+1 ruido). Los supervivientes la cruzan.' },
   enlace:      { nombre: 'Enlace', ing: ['walkie', 'walkie', 'pilas'], res: 'enlace',
                  texto: 'Une a dos supervivientes 4 rondas: pueden darse cartas a distancia.' },
 };
@@ -255,9 +255,9 @@ function cantidadObjetivo(M, n) { if (!M.cantidades) return M.cantidad; return n
 const MISIONES = {
   farmacia: { nombre: 'Farmacia Central', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 10,
     texto: 'Traed antibióticos al refugio (2, 3 o 4 según el tamaño del grupo). Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
-    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, kit: ['botiquin'] },
+    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, farmaciasSoloAntibioticos: true, kit: ['botiquin'] },
   sin_gota: { nombre: 'Sin una gota', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10,
-    texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.',
+    texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule antes de la noche siguiente (con cura o descansando en el refugio) hace fracasar la misión.',
     objetivo: 'todos_helipuerto', especial: 'helipuerto', kit: ['antibioticos'] },
   granja:   { nombre: 'La granja', etiquetas: ['HC', 'R'], contagio: 'hardcore', rondas: 12,
     texto: 'Conseguid las semillas (llegan por evento) y bidones (1 o 2 según el grupo), dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
@@ -268,27 +268,27 @@ const MISIONES = {
   convoy:   { nombre: 'El convoy', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 9,
     texto: 'Craftead vehículos con depósito y sacad de la ciudad a bordo a 2, 4 o 6 supervivientes según el tamaño del grupo. Empezáis con un coche, una moto y un bidón.',
     objetivo: 'convoy', cantidades: { 3: 2, 6: 4, 10: 6 }, kit: [['coche', 'bidon'], ['moto', 'bidon']] },
-  cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 8,
-    texto: 'Levantad barricadas en las aristas del refugio (3, 4 o 6 según el tamaño del grupo) antes de la ronda 8 sin un solo contagio. Empezáis con materiales para dos.',
-    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 4, 10: 6 }, kit: [['tablas', 'chapa', 'clavos'], ['tablas', 'chapa', 'clavos'], 'antibioticos'] },
+  cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10, tallerMateriales: ['tablas', 'chapa'],
+    texto: 'Levantad barricadas en las aristas del refugio (3 o 4 según el tamaño del grupo) antes de la ronda 10 sin un solo contagio. Empezáis con materiales para dos y los talleres guardan tablas y chapa.',
+    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 3, 10: 4 }, kit: [['tablas', 'chapa'], ['tablas', 'chapa'], 'antibioticos'] },
   invierno: { nombre: 'Invierno', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 10,
-    texto: 'Acumulad comida en el refugio (4, 6 o 10 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
-    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 10 }, kit: ['comida', 'comida'] },
+    texto: 'Acumulad comida en el refugio (4, 6 u 8 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 8 }, kit: ['comida', 'comida'] },
   deposito: { nombre: 'El depósito', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 12,
     texto: 'Llevad los bidones de gasolina al generador del norte (2, 3 o 4 según el tamaño del grupo).',
     objetivo: 'deposito', especial: 'generador', cantidades: { 3: 2, 6: 3, 10: 4 }, kit: ['bidon'] },
   ultima:   { nombre: 'Última llamada', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 12,
-    texto: 'Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.',
-    objetivo: 'sobrevivir', hordaDesde: 6 },
+    texto: 'Defended el refugio: al caer la noche 12, al menos la mitad del equipo debe estar viva en el refugio o pegada a él. Desde la ronda 6, cada dos noches llega una carta de horda extra y los muertos os huelen desde cualquier punto del mapa. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'sobrevivir', hordaDesde: 6, hordaCada: 2, percepcion: 99, enRefugio: 1 },
   suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 12,
     texto: 'Recoged los suministros marcados de las losetas de borde (3, 4 o 5 según el tamaño del grupo).',
     objetivo: 'suministros', cantidades: { 3: 3, 6: 4, 10: 5 }, suministros: 5, kit: [['moto', 'bidon']] },
-  cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
+  cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 14,
     texto: 'Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.',
     objetivo: 'cero', kit: ['antibioticos', 'antibioticos'] },
-  protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['HC', 'SC', 'T'], contagio: 'ambos', rondas: 12,
-    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión. Empezáis con un rifle y un silenciador.',
-    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']] },
+  protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
+    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio sin un solo contagio. Empezáis con un rifle y un silenciador.',
+    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']], zombisGarantizados: { acorazado: 1, corredor: 2 } },
 };
 
 const EVENTOS = [
@@ -319,7 +319,7 @@ const HORDAS = [
 // El tope de ruido crece con los jugadores: cada dado extra en la mesa es una cara de ruido más por ronda.
 function escalado(n) {
   const ruidoTope = PARAMS.ruidoTopeBase + Math.max(0, n - 4); const base = { ruidoTope, ruidoTrasHorda: Math.max(1, ruidoTope - PARAMS.ruidoTrasHordaResta) };
-  if (n <= 3) return { ...base, horda: 3, extraLoseta: 0, ruidoInicial: 2 };
+  if (n <= 3) return { ...base, horda: 4, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 6) return { ...base, horda: 5, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 8) return { ...base, horda: 7, extraLoseta: 1, ruidoInicial: 2 };
   return { ...base, horda: 9, extraLoseta: 1, ruidoInicial: 3 };
@@ -368,7 +368,7 @@ const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
-    recetasConocidas: [...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
+    recetasConocidas: [...new Set([...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
   const esc = escalado(jugadores.length); G.escalado = esc; G.ruido = esc.ruidoInicial;
   const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length);
@@ -386,6 +386,7 @@ function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   G.mazoEventos = barajar(G, EVENTOS.map((e, i) => i).filter(i => EVENTOS[i].id !== 'semillas'));
   if (M.semillas) { const idx = EVENTOS.findIndex(e => e.id === 'semillas'); G.mazoEventos.splice(G.mazoEventos.length - 1, 0, idx); } // sale en la ronda 4
   generarTablero(G, M);
+  for (let i = 0; i < PARAMS.recetasExtraInicio; i++) { const libres = Object.keys(RECETAS).filter(r => !G.recetasConocidas.includes(r)); if (libres.length) { const r = elegir(G, libres); G.recetasConocidas.push(r); log(G, `El grupo conoce además la receta: ${RECETAS[r].nombre}.`); } }
   log(G, `Misión: ${M.nombre}. ${M.texto}`, 'mision');
   iniciarRonda(G);
   return G;
@@ -414,6 +415,7 @@ function generarTablero(G, M) {
   const revelarLosetaDe = k => { for (const c of Object.values(C)) if (c.loseta === C[k].loseta) c.revelada = true; };
   if (M.especial === 'helipuerto' || M.especial === 'torre' || M.especial === 'laboratorio') { const cand = borde.filter(c => !c.revelada && c.tipo !== 'entrada'); const h = elegir(G, cand); h.tipo = M.especial; G.especiales[M.especial] = h.k; revelarLosetaDe(h.k); }
   if (M.especial === 'generador') { const norte = Object.values(C).filter(c => !c.revelada).sort((a, b) => dist(a.k, '0,-5') - dist(b.k, '0,-5'))[0]; norte.tipo = 'generador'; G.especiales.generador = norte.k; revelarLosetaDe(norte.k); }
+  if (M.zombisGarantizados) { const cand = barajar(G, Object.values(C).filter(c => !c.revelada && c.tipo !== 'entrada' && !vecinos(c.k).some(v => !C[v]))); for (const [tipo, n] of Object.entries(M.zombisGarantizados)) for (let i = 0; i < n && cand.length; i++) ponerZombi(G, tipo, 1, cand.pop().k); }
   if (M.suministros) { const cand = barajar(G, borde.filter(c => !c.revelada && c.tipo !== 'entrada')); const porLoseta = new Set(); let n = 0; for (const c of cand) { if (porLoseta.has(c.loseta)) continue; porLoseta.add(c.loseta); c.objetos.push('suministro'); c.marca = 'suministro'; if (++n >= M.suministros) break; } }
 }
 
@@ -528,8 +530,8 @@ function saquear(G) {
   const n = j.personajeId === 'ruy' ? 2 : 1; const obtenidos = [];
   for (let i = 0; i < n; i++) {
     let id; if (c.tipo === 'gasolinera') { id = 'bidon'; if (i === 0) subirRuido(G, 1, 'saquear la gasolinera'); }
-    else if (c.tipo === 'farmacia') id = c.saqueos % 2 ? 'antibioticos' : 'botiquin';
-    else if (c.tipo === 'taller') id = rnd(G) < .3 ? 'receta' : elegir(G, ['cinta', 'clavos', 'tubo', 'pilas', 'tablas', 'chapa']);
+    else if (c.tipo === 'farmacia') id = mision(G).farmaciasSoloAntibioticos || c.saqueos % 2 ? 'antibioticos' : 'botiquin';
+    else if (c.tipo === 'taller') id = rnd(G) < .3 ? 'receta' : elegir(G, mision(G).tallerMateriales || ['cinta', 'clavos', 'tubo', 'pilas', 'tablas', 'chapa']);
     else id = robarObjeto(G);
     if (id === 'receta') { const desconocidas = Object.keys(RECETAS).filter(r => !G.recetasConocidas.includes(r)); if (desconocidas.length) { const r = elegir(G, desconocidas); G.recetasConocidas.push(r); log(G, `${j.nombre} encuentra un recetario: ${RECETAS[r].nombre}.`, 'bien'); obtenidos.push('Recetario: ' + RECETAS[r].nombre); continue; } id = 'cinta'; }
     j.mano.push(carta(G, id)); obtenidos.push(OBJETOS[id].nombre);
@@ -590,7 +592,7 @@ function herir(G, j, n, motivo, mordisco = true) {
 function aplicarMordisco(G, j) {
   if (j.mordido) return; stat(G, 'mordiscos'); const regla = mision(G).contagio;
   if (regla === 'cuenta_atras') { j.mordido = { turnos: PARAMS.turnosContagio, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. ${PARAMS.turnosContagio} turnos para curarlo o amputar.`, 'peligro'); }
-  else if (regla === 'sin_contagio') { j.mordido = { sc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Si no se anula con antibióticos, Tratamiento o amputación antes de la próxima noche, la misión fracasa.`, 'peligro'); }
+  else if (regla === 'sin_contagio') { j.mordido = { sc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Si no se anula antes de la próxima noche con antibióticos, Tratamiento, amputación o pasando la noche en el refugio, la misión fracasa.`, 'peligro'); }
   else if (regla === 'ambos') { j.mordido = { sc: true, hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Sin cura antes de la próxima noche, la misión fracasa y además se convertirá.`, 'peligro'); }
   else if (G.opciones.hardcoreTardio) { j.mordido = { hc: true, ronda: G.ronda, limite: G.ronda + 1 }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Se convertirá en la noche siguiente: una ronda para despedirse y repartir el inventario.`, 'peligro'); }
   else { j.mordido = { hc: true, ronda: G.ronda }; aviso(G, 'Mordisco', `${j.nombre} está infectado. Al terminar la ronda se convertirá.`, 'peligro'); }
@@ -676,7 +678,7 @@ function terminarTurno(G, forzar = false) {
 function depositar(G, j) {
   const c = G.casillas[j.pos]; const M = mision(G);
   const dejar = (id, clave, mult = 1) => { const cs = j.mano.filter(x => x.id === id); if (!cs.length) return; cs.forEach(x => quitarCarta(j, x.uid)); G.almacen[clave] += cs.length * mult; log(G, `${j.nombre} deja ${cs.length} ${OBJETOS[id].nombre.toLowerCase()} (${G.almacen[clave]}).`, 'bien'); };
-  if (c.tipo === 'refugio') { dejar('comida', 'comida', j.personajeId === 'omar' ? 2 : 1); dejar('antibioticos', 'antibioticos'); dejar('semillas', 'semillas'); if (M.objetivo === 'granja') dejar('bidon', 'bidon'); }
+  if (c.tipo === 'refugio') { if (M.objetivo === 'comida_refugio') dejar('comida', 'comida', j.personajeId === 'omar' ? 2 : 1); if (M.objetivo === 'antibioticos_refugio') dejar('antibioticos', 'antibioticos'); dejar('semillas', 'semillas'); if (M.objetivo === 'granja') dejar('bidon', 'bidon'); }
   if (c.tipo === 'generador') dejar('bidon', 'bidon');
   if (c.tipo === 'laboratorio') for (const t of ['caminante', 'corredor', 'acorazado']) { const m = j.mano.find(x => x.id === 'muestra_' + t); if (m) { quitarCarta(j, m.uid); G.banderas['muestra_' + t] = true; G.almacen.muestras++; log(G, `${j.nombre} entrega la muestra de ${t} (${G.almacen.muestras}/3).`, 'bien'); } }
 }
@@ -688,7 +690,7 @@ function moverZombiHacia(G, z, objetivo, pasos) {
   for (let i = 0; i < pasos; i++) {
     if (z.pos === objetivo) break; const opciones = vecinos(z.pos).filter(v => D[v] != null && D[v] < (D[z.pos] ?? 1e9)); if (!opciones.length) break;
     const dest = opciones[entero(G, opciones.length)];
-    if (hayBarricada(G, z.pos, dest)) { G.barricadas = G.barricadas.filter(a => a !== arista(z.pos, dest)); subirRuido(G, 1, 'una barricada cae'); log(G, `${ZOMBIS[z.tipo].nombre}${z.n > 1 ? ' ×' + z.n : ''} derriba una barricada.`, 'peligro'); break; }
+    if (hayBarricada(G, z.pos, dest)) { if (!esHorda(z)) { log(G, `${ZOMBIS[z.tipo].nombre} se queda arañando una barricada.`); break; } G.barricadas = G.barricadas.filter(a => a !== arista(z.pos, dest)); subirRuido(G, 1, 'una barricada cae'); log(G, `${ZOMBIS[z.tipo].nombre} ×${z.n} derriba una barricada.`, 'peligro'); break; }
     z.pos = dest; movido++;
     const c = G.casillas[dest]; const js = jugadoresEn(G, dest);
     if (js.length) { for (const j of js) { if (j.personajeId === 'ruy' && adultoCon(G, j)) continue; if (j.estado === 'caido') { if (esHorda(z)) morirOConvertir(G, j, 'la horda alcanza a ' + j.nombre + ' en el suelo'); } else if (!(j.camuflaje > 0 && z.tipo === 'caminante')) zombiAtaca(G, z, j); } break; }
@@ -700,7 +702,7 @@ function objetivoZombi(G, z) {
   const senuelos = Object.values(G.casillas).filter(c => c.senuelo > 0).map(c => c.k).filter(k => dist(k, z.pos) <= 3);
   if (senuelos.length) return senuelos.sort((a, b) => dist(a, z.pos) - dist(b, z.pos))[0];
   // Los zombis solo perciben supervivientes a PERCEPCION casillas; si no huelen a nadie, van hacia el refugio cuando el ruido es alto y si no se quedan.
-  const cand = vivos(G).filter(j => !(j.camuflaje > 0 && z.tipo === 'caminante')).filter(j => !(j.personajeId === 'ruy' && (esHorda(z) || adultoCon(G, j)))).filter(j => dist(j.pos, z.pos) <= PARAMS.percepcion);
+  const cand = vivos(G).filter(j => !(j.camuflaje > 0 && z.tipo === 'caminante')).filter(j => !(j.personajeId === 'ruy' && (esHorda(z) || adultoCon(G, j)))).filter(j => dist(j.pos, z.pos) <= (mision(G).percepcion || PARAMS.percepcion));
   if (!cand.length) return G.ruido >= G.escalado.ruidoTrasHorda && z.pos !== '0,0' ? '0,0' : null;
   cand.sort((a, b) => dist(a.pos, z.pos) - dist(b.pos, z.pos) || (a.personajeId === 'ceniza') - (b.personajeId === 'ceniza') || a.id - b.id); return cand[0].pos;
 }
@@ -749,7 +751,7 @@ function faseNoche(G) {
   G.fase = 'noche'; const M = mision(G);
   subirRuido(G, PARAMS.ruidoPorNoche, 'cae la noche');
   if (G.ruido >= G.escalado.ruidoTope) { cartaHorda(G); G.ruido = G.escalado.ruidoTrasHorda; log(G, `El ruido baja a ${G.ruido}.`); }
-  if (M.hordaDesde && G.ronda >= M.hordaDesde && (G.ronda - M.hordaDesde) % 2 === 0) cartaHorda(G);
+  if (M.hordaDesde && G.ronda >= M.hordaDesde && (G.ronda - M.hordaDesde) % (M.hordaCada || 2) === 0) cartaHorda(G);
   if (G.ronda % 2 === 0) {
     const idx = robarEvento(G); const bea = G.jugadores.find(j => j.personajeId === 'beatriz' && j.estado === 'vivo');
     if (bea && !G.banderas.instintoEventoUsado) { G.fase = 'decision'; G.decision = { tipo: 'evento', jugadorId: bea.id, evento: idx }; return; }
@@ -767,7 +769,8 @@ function nocheB(G) {
   for (const j of vivos(G)) if (j.pos === '0,0' && j.estado === 'vivo' && j.vida < j.vidaMax) { j.vida++; log(G, `${j.nombre} descansa en el refugio (+1 vida).`, 'bien'); }
   for (const j of vivos(G)) { if (!j.mordido) continue;
     if (j.mordido.turnos != null) { j.mordido.turnos--; if (j.mordido.turnos <= 0) convertir(G, j, 'el contagio completa su curso'); else log(G, `${j.nombre}: ${j.mordido.turnos} turnos para la cura.`, 'peligro'); }
-    else { const vence = j.mordido.limite == null || G.ronda >= j.mordido.limite; if (!vence) { log(G, `${j.nombre}: última ronda para anular el contagio.`, 'peligro'); continue; } if (j.mordido.sc) G.fin = { resultado: 'derrota', motivo: `${j.nombre} no pudo anular el contagio. La misión exigía cero contagios.` }; if (j.mordido.hc) convertir(G, j, 'modo hardcore'); } }
+    else { if (j.mordido.sc && j.pos === '0,0' && j.estado === 'vivo') { j.mordido = null; j.curadoMordisco = true; stat(G, 'curas'); log(G, `${j.nombre} pasa la noche en el refugio y el mordisco no llega a infectar.`, 'bien'); continue; }
+      const vence = j.mordido.limite == null || G.ronda >= j.mordido.limite; if (!vence) { log(G, `${j.nombre}: última ronda para anular el contagio (cura o noche en el refugio).`, 'peligro'); continue; } if (j.mordido.sc) G.fin = { resultado: 'derrota', motivo: `${j.nombre} no pudo anular el contagio. La misión exigía cero contagios.` }; if (j.mordido.hc) convertir(G, j, 'modo hardcore'); } }
   for (const c of Object.values(G.casillas)) { if (c.fuego) c.fuego--; if (c.senuelo) c.senuelo--; }
   for (const j of G.jugadores) if (j.camuflaje) j.camuflaje--;
   G.enlaces = G.enlaces.map(e => ({ ...e, rondas: e.rondas - 1 })).filter(e => e.rondas > 0);
@@ -812,7 +815,7 @@ function aplicarEvento(G, idx) {
 function comprobarFin(G, finRonda = false) {
   if (G.fin) return G.fin; const M = mision(G); const N = G.jugadores.length;
   const perdidos = G.jugadores.filter(j => j.estado === 'zombi' || j.estado === 'muerto').length;
-  const umbral = N >= 4 ? Math.floor(N / 2) + 1 : N; // más de la mitad del equipo
+  const umbral = N >= 4 ? Math.floor(N / 2) + 1 : N === 3 ? 2 : N; // más de la mitad; con 3 jugadores bastan 2; con 2, todos
   if (perdidos >= umbral) G.fin = { resultado: 'derrota', motivo: G.jugadores.some(j => j.estado === 'zombi') ? 'El bando zombi ha alcanzado a la mitad del equipo.' : 'No queda nadie en pie.' };
   const salidos = G.jugadores.filter(j => j.estado === 'salido').length; const enPie = vivos(G).length + salidos;
   if (!G.fin) {
@@ -829,7 +832,7 @@ function comprobarFin(G, finRonda = false) {
     if (M.objetivo === 'torre' && G.progreso >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
     if (M.objetivo === 'todos_helipuerto') { const v = vivos(G); if (v.length && v.every(j => j.pos === G.especiales.helipuerto && j.estado === 'vivo')) G.fin = { resultado: 'victoria', motivo: 'Todo el equipo despega sin una gota de sangre infectada.' }; }
     if (!G.fin && G.ronda >= M.rondas) {
-      if (M.objetivo === 'sobrevivir') G.fin = enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${enPie} de ${N} responden a la última llamada.` } : { resultado: 'derrota', motivo: 'Demasiados caídos cuando llegó la última llamada.' };
+      if (M.objetivo === 'sobrevivir') { const cuenta = M.enRefugio ? vivos(G).filter(j => dist(j.pos, '0,0') <= (M.enRefugio === true ? 0 : M.enRefugio) && j.estado === 'vivo').length : enPie; G.fin = cuenta >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${cuenta} de ${N} responden a la última llamada desde el refugio.` } : { resultado: 'derrota', motivo: `Solo ${cuenta} de ${N} estaban en pie dentro del refugio cuando llegó la última llamada.` }; }
       else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= G.cantidad && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
       else G.fin = { resultado: 'derrota', motivo: 'Se agotaron las rondas.' };
     }
@@ -925,8 +928,8 @@ const REGLAS = `
 <h4>Dados</h4><p>Cada dado: 3 caras de <b>paso</b> (1 casilla / 1 impacto), <b>doble paso</b> (2 / 2), <b>ruido</b> (0 casillas y +1 ruido / 1 impacto y +1 ruido) y <b>mordisco</b> (0 / 0; si terminas al lado de un zombi te ataca; en combate el zombi contraataca).</p>
 <h4>Acciones</h4><p>Saquear (edificio, gasolinera, farmacia, taller; dos veces por casilla), atacar, craftear (gratis en taller), curar, amputar, dar cartas (adyacente o por enlace), levantar a un caído, conducir o subir de pasajero, descansar (+1 vida, −1 pánico sin zombis a 2 casillas).</p>
 <h4>Combate</h4><p>Tira los dados del arma (sin arma 1). Impactos ≥ fuerza del zombi: muere. Contra una horda, cada 2 impactos eliminan un caminante. Armas de fuego: +2 ruido y alcance 3 con línea de visión. El acorazado solo cae cuerpo a cuerpo o con molotov.</p>
-<h4>Defensa</h4><p>Cuando un zombi entra en tu casilla tiras 1 dado (Beatriz 2). Paso o doble: esquivas. Ruido: esquivas con +1 ruido. Mordisco: 1 herida (2 si es horda) y quedas <b>mordido</b>.</p>
-<h4>Contagio</h4><p>Lo fija la misión. <b>Cuenta atrás</b>: 4 turnos para curarte con Tratamiento (+2), antibióticos (+1) o amputación. <b>Sin contagio</b>: hasta la noche siguiente para anularlo o la misión fracasa. <b>Hardcore</b>: te conviertes al caer la noche (o la siguiente, según la variante elegida).</p>
+<h4>Defensa</h4><p>Cuando un zombi entra en tu casilla tiras 2 dados (Beatriz 3). Si sale algún paso o doble, esquivas. Si solo hay ruido, esquivas con +1 ruido. Si todo es mordisco: 1 herida (2 si es horda) y quedas <b>mordido</b>.</p>
+<h4>Contagio</h4><p>Lo fija la misión. <b>Cuenta atrás</b>: 4 turnos para curarte con Tratamiento (+2), antibióticos (+1) o amputación. <b>Sin contagio</b>: hasta la noche siguiente para anularlo con cura, amputación o pasando la noche en el refugio; si no, la misión fracasa. <b>Hardcore</b>: te conviertes al caer la noche (o la siguiente, según la variante elegida).</p>
 <h4>Jugador zombi</h4><p>Actúa tras los zombis con 2 acciones: empujar una horda, mover su ficha, atacar, oler una mano, ocultarse entre caminantes. Gana cuando más de la mitad del equipo esté convertido o muerto. Evoluciona con cada conversión.</p>
 <h4>Peso</h4><p>Capacidad base 6. Materiales 0, armas y consumibles 1, bidones, tablas y chapa 2. Sobrecargado: un dado menos.</p>`;
 function verReglas() { modal('Hoja de reglas', REGLAS, [['Cerrar', null]]); }

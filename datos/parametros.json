@@ -19,5 +19,6 @@
   "impactosPorCaminanteHorda": 2,
   "ruidoTopeBase": 10,
   "ruidoTrasHordaResta": 7,
-  "dadosDefensa": 1
+  "dadosDefensa": 2,
+  "recetasExtraInicio": 1
 }

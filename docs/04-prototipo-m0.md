@@ -1,6 +1,6 @@
 # Z-2099 · prototipo M0 de reglas
 
-Prototipo jugable en el navegador para probar las reglas del documento de diseño con un grupo real antes de invertir en arte. Sin 3D: tablero hexagonal plano, dados, cartas, contagio y jugador zombi. Versión 0.3. El informe de partidas simuladas a 2 y 4 jugadores está en `07-informe-partidas-simuladas.md`.
+Prototipo jugable en el navegador para probar las reglas del documento de diseño con un grupo real antes de invertir en arte. Sin 3D: tablero hexagonal plano, dados, cartas, contagio y jugador zombi. Versión 0.4. El informe de partidas simuladas a 2 y 4 jugadores está en `07-informe-partidas-simuladas.md`.
 
 ## Cómo probarlo
 
@@ -39,6 +39,14 @@ El simulador `prototipo/sim.mjs` juega partidas completas con jugadores automát
 | Cantidades de objetivo | Fijas, pensadas para 10 jugadores | Por tramos de jugadores (hasta 3, 6, 10) | Con 2 y 4 jugadores varias misiones eran imposibles |
 | Kit de misión | No existía | Cartas iniciales por misión (coche y moto en Convoy, radio en Emisora, materiales en Cuarentena…) y receta clave conocida | Los objetivos dependían de cartas rarísimas |
 | Depósito del coche | 4 | 6 | No llegaba del refugio al borde |
+| Dados de defensa | 1 (Beatriz 2) | 2 (Beatriz 3) | Los mordiscos venían de la fase de zombis, no de las decisiones |
+| Horda con 2 o 3 jugadores | 3 | 4 | Jugar a 2 era más fácil que a 4 |
+| Victoria zombi con 3 jugadores | Todos | 2 conversiones | Idem |
+| Mordisco en misiones sin contagio | Solo se anula con cura | También pasando la noche en el refugio | Cada ataque era una moneda al aire para la misión |
+| Protocolo Z-2099 | Hardcore y sin contagio | Solo sin contagio, con acorazado y corredores garantizados | 0 % de victorias |
+| Última llamada | Sobrevivir con la mitad | Defender el refugio con la mitad dentro o adyacente; percepción total | Huyendo se sobrevivía siempre |
+| Barricada | Tablas + clavos + chapa; cualquier zombi la derriba | Tablas + chapa; solo las hordas la derriban | Cuarentena era imposible |
+| Recetas iniciales | 3 | 3 + la de la misión + 1 al azar | El crafteo no aparecía |
 | Los suministros del puente | 10 rondas | 12 rondas | Recorrer el borde en 10 era imposible con pocos jugadores |
 
 ## Resultados del simulador (60 partidas por fila, bots heurísticos)
