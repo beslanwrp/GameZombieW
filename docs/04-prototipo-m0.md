@@ -70,6 +70,28 @@ Los bots no coordinan, usan mal los vehículos y casi nunca curan: estas cifras 
 
 **Lectura.** Las misiones con cuenta atrás (Farmacia, Emisora, Convoy, Depósito, Suministros) ya no las gana el bando zombi por sistema, pero los bots no saben cumplir el objetivo. Las misiones sin contagio rondan el 10-30 %. Las misiones **hardcore (Granja, Invierno, Última llamada) siguen casi imposibles**: tres mordiscos en toda la partida son derrota. Propuesta a probar en mesa: en hardcore el mordido se convierte en la noche *siguiente*, dando una ronda para despedirse y dejar el inventario.
 
+## Sensibilidad de los parámetros (barrido con bots)
+
+`node prototipo/barrido.mjs 12` cambia un parámetro a la vez y mide la tasa de victoria de los bots en las 12 misiones con 4 y 10 jugadores. Resultado con la versión 0.2.2:
+
+| Variante | Victoria 4 jug. | Victoria 10 jug. | Conversiones por partida (4 / 10) |
+| --- | --- | --- | --- |
+| Base | 4 % | 10 % | 1,3 / 3,0 |
+| Tope de ruido 12 | +1 | +0 | 1,2 / 2,7 |
+| Tope de ruido 8 | +1 | −1 | 1,3 / 3,1 |
+| Sin ruido automático por noche | +4 | +2 | 1,1 / 2,7 |
+| Ruido por noche 2 | −1 | −1 | 1,4 / 3,1 |
+| Percepción de los zombis 3 | +1 | +0 | 1,3 / 3,0 |
+| Percepción 6 | −1 | −1 | 1,3 / 3,1 |
+| **2 dados de defensa** | **+17** | **+20** | **0,2 / 0,8** |
+| Cuenta atrás de contagio 6 turnos | +1 | +1 | 1,0 / 2,4 |
+| 3 acciones por ronda | +3 | +1 | 1,2 / 2,9 |
+| 1 impacto por caminante de horda | +1 | +0 | 1,2 / 3,0 |
+| 3 impactos por caminante de horda | +0 | +0 | 1,3 / 3,0 |
+| Hardcore tardío | +2 | +3 | 1,2 / 2,9 |
+
+**Lectura.** Con los bots actuales casi ninguna palanca mueve el resultado salvo una: la **tirada de defensa**. Con un dado, cada ataque de zombi es un mordisco en 1 de 6; a lo largo de una partida eso suma más conversiones de las que el equipo aguanta, y ninguna otra regla lo compensa. Con dos dados, el mordisco baja a 1 de 36 por ataque y las conversiones caen a la sexta parte. Es la primera cosa que hay que mirar en mesa: si los jugadores humanos también acaban mordidos por la fase de zombis más que por sus decisiones, la regla a cambiar es la defensa (2 dados base, Beatriz 3), no el ruido ni las hordas. Los parámetros `dadosDefensa`, `ruidoTopeBase` y `ruidoTrasHordaResta` están en `datos.js` para probarlo.
+
 ## Qué observar en las pruebas
 
 1. **Duración por ronda** con 4 y con 10 jugadores. Objetivo: menos de 3 minutos.
@@ -87,6 +109,7 @@ Los bots no coordinan, usan mal los vehículos y casi nunca curan: estas cifras 
 | `prototipo/src/reglas.js` | Motor de reglas puro, sin interfaz, estado serializable |
 | `prototipo/src/ui.js` | Interfaz móvil con Canvas y modo «pasar el móvil» |
 | `prototipo/sim.mjs` | Simulador de equilibrio: `node prototipo/sim.mjs 40 todas 4,6,10`. También exporta `jugar()` para grabar trazas |
+| `prototipo/barrido.mjs` | Barrido de parámetros: `node prototipo/barrido.mjs 12` |
 | `prototipo/trazas.mjs` | Trazas doradas para el porte a C#: `generar` escribe `prototipo/trazas/*.json`, `verificar` las reproduce |
 | `prototipo/exportar-datos.mjs` | Exporta la hoja de equilibrio a `datos/*.json` para Unity |
 | `prototipo/plantilla.html` | Maqueta y estilos |

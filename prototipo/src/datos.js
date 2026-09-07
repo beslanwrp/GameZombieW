@@ -4,7 +4,7 @@ export const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 4, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 4, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
 };
 
 export const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];
@@ -198,7 +198,7 @@ export const HORDAS = [
 
 // El tope de ruido crece con los jugadores: cada dado extra en la mesa es una cara de ruido más por ronda.
 export function escalado(n) {
-  const ruidoTope = 10 + Math.max(0, n - 4); const base = { ruidoTope, ruidoTrasHorda: ruidoTope - 7 };
+  const ruidoTope = PARAMS.ruidoTopeBase + Math.max(0, n - 4); const base = { ruidoTope, ruidoTrasHorda: Math.max(1, ruidoTope - PARAMS.ruidoTrasHordaResta) };
   if (n <= 3) return { ...base, horda: 3, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 6) return { ...base, horda: 5, extraLoseta: 0, ruidoInicial: 2 };
   if (n <= 8) return { ...base, horda: 7, extraLoseta: 1, ruidoInicial: 2 };

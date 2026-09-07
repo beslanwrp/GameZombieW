@@ -386,7 +386,7 @@ export function faseZombis(G, extra = 0) {
 }
 function fusionar(G) { const porPos = {}; for (const z of Object.values(G.zombis)) { if (z.tipo === 'jugador') continue; const k = z.pos + '|' + z.tipo; if (porPos[k]) { porPos[k].n += z.n; delete G.zombis[z.id]; } else porPos[k] = z; } }
 export function zombiAtaca(G, z, j, origen = 'fase') {
-  if (j.estado !== 'vivo') return; stat(G, 'ataques_' + origen); const n = j.personajeId === 'beatriz' ? 2 : 1; let dados = []; for (let i = 0; i < n; i++) dados.push(tirarDado(G));
+  if (j.estado !== 'vivo') return; stat(G, 'ataques_' + origen); const n = PARAMS.dadosDefensa + (j.personajeId === 'beatriz' ? 1 : 0); let dados = []; for (let i = 0; i < n; i++) dados.push(tirarDado(G));
   const evalua = ds => ds.some(d => d === 'paso' || d === 'doble') ? 'esquiva' : ds.includes('ruido') ? 'ruido' : 'mordisco';
   let res = evalua(dados);
   if (res === 'mordisco' && j.personajeId === 'beatriz' && G.turno && !G.turno.instintoUsado && G.turno.jugadorId === j.id) { G.turno.instintoUsado = true; dados = [tirarDado(G), tirarDado(G)]; res = evalua(dados); log(G, 'Instinto: Beatriz repite la defensa.'); }

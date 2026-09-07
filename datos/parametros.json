@@ -16,5 +16,8 @@
   "radioMapa": 6,
   "rondasEnlace": 4,
   "percepcion": 4,
-  "impactosPorCaminanteHorda": 2
+  "impactosPorCaminanteHorda": 2,
+  "ruidoTopeBase": 10,
+  "ruidoTrasHordaResta": 7,
+  "dadosDefensa": 1
 }

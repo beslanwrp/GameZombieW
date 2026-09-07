@@ -36,6 +36,7 @@ Hito M0 v0.2: prototipo web de reglas completo (`prototipo/dist/index.html`) con
 node --test prototipo/test/            # pruebas del motor
 node prototipo/build.mjs               # genera prototipo/dist/index.html
 node prototipo/sim.mjs 40 todas 4,6,10 # simulador de equilibrio
+node prototipo/barrido.mjs 12          # sensibilidad de cada parámetro
 node prototipo/trazas.mjs verificar    # reproduce las trazas doradas
 node prototipo/exportar-datos.mjs      # exporta la hoja de equilibrio a datos/*.json
 node prototipo/sim.mjs 40      # simula 40 partidas por misión y tamaño de grupo
