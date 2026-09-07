@@ -1,0 +1,82 @@
+<title>Z-2099 Cuaderno de Pruebas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#E4E5E0;--surface:#F2F2EE;--surface2:#E9EAE5;--ink:#16181A;--muted:#5A5F64;--line:#C6C9C2;--accent:#9B2C1C;--accent-ink:#fff;--olive:#5F6E36;--hazard:#D6A319;--focus:#2B5FA8;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131517;--surface:#1C1F22;--surface2:#23272B;--ink:#E8E6DF;--muted:#9BA1A5;--line:#33393E;--accent:#D0553F;--accent-ink:#1A0C09;--olive:#9FAE60;--hazard:#E4B738;--focus:#7FA6E8;}}
+:root[data-theme="dark"]{--bg:#131517;--surface:#1C1F22;--surface2:#23272B;--ink:#E8E6DF;--muted:#9BA1A5;--line:#33393E;--accent:#D0553F;--accent-ink:#1A0C09;--olive:#9FAE60;--hazard:#E4B738;--focus:#7FA6E8;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:17px;line-height:1.5}
+.hazard{height:10px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 18px,var(--ink) 18px 36px)}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px 80px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:clamp(48px,8vw,84px);line-height:.9;text-transform:uppercase;margin:8px 0 12px}h1 span{color:var(--accent)}
+h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-size:32px;line-height:1;text-transform:uppercase;margin:36px 0 10px}
+p{margin:0 0 12px;max-width:68ch}.muted{color:var(--muted)}.small{font-size:14px}
+header{padding:36px 0 20px;border-bottom:1px solid var(--line)}
+.resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:20px 0 0}
+@media (max-width:640px){.resumen{grid-template-columns:1fr 1fr}}
+.resumen div{background:var(--surface);padding:12px 14px}.resumen .k{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.resumen .v{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}@media (max-width:640px){form{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}label.ancho{grid-column:1/-1}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 10px}textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:1px}
+.pegar{grid-column:1/-1;border-left:3px solid var(--hazard);padding:12px 14px;background:var(--surface)}.pegar textarea{width:100%;font-family:"IBM Plex Mono",monospace;font-size:13px;min-height:110px}
+.escala{display:flex;gap:6px}.escala label{flex:1;flex-direction:row;justify-content:center;padding:9px 0;background:var(--surface);border:1px solid var(--line);cursor:pointer;font-family:"IBM Plex Mono",monospace;color:var(--ink);position:relative}.escala input{position:absolute;opacity:0}.escala label:has(input:checked){background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.escala label:has(input:focus-visible){outline:2px solid var(--focus)}
+button{font:inherit;font-weight:600;font-size:16px;padding:12px 22px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}button.primario{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}button.ghost{background:transparent;color:var(--ink)}button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.acciones{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}.estado{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted)}.estado.ok{color:var(--olive)}.estado.err{color:var(--accent)}
+.tw{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top}th{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface2)}td.victoria{color:var(--olive);font-weight:600}td.derrota{color:var(--accent);font-weight:600}td.nota{white-space:normal;min-width:220px;color:var(--muted)}
+</style>
+<div class="hazard"></div>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Z-2099 · pruebas de mesa del prototipo M0</div>
+  <h1>Cuaderno de <span>pruebas</span></h1>
+  <p>Una entrada por partida. Al terminar una partida, el prototipo muestra un informe: pégalo en la caja amarilla y los campos se rellenan solos. Añade lo que los números no cuentan: qué se disfrutó, qué se atascó, qué cambiaríais.</p>
+  <div class="resumen" id="resumen"><div><div class="k">Partidas</div><div class="v">0</div></div><div><div class="k">Victorias</div><div class="v">–</div></div><div><div class="k">Min por ronda</div><div class="v">–</div></div><div><div class="k">Primera horda</div><div class="v">–</div></div></div>
+</header>
+
+<h2>Nueva partida</h2>
+<form id="f" autocomplete="off">
+  <div class="pegar"><label>Pega aquí el informe del prototipo<textarea id="pegar" placeholder="Misión: Farmacia Central&#10;Jugadores: 4&#10;..."></textarea></label><div class="small muted" id="pegado"></div></div>
+  <label>Fecha<input type="date" name="fecha"></label>
+  <label>Misión<select name="mision"><option value="">Elige</option><option>Farmacia Central</option><option>Sin una gota</option><option>La granja</option><option>La emisora</option><option>El convoy</option><option>Cuarentena</option><option>Invierno</option><option>El depósito</option><option>Última llamada</option><option>Los suministros del puente</option><option>Cero contagios</option><option>Protocolo Z-2099</option></select></label>
+  <label>Jugadores<input type="number" name="jugadores" min="2" max="10"></label>
+  <label>Variante hardcore<select name="hardcore"><option value="">No aplica</option><option value="inmediato">Conversión inmediata</option><option value="tardio">Noche siguiente</option></select></label>
+  <label>Resultado<select name="resultado"><option value="">Elige</option><option value="victoria">Victoria del equipo</option><option value="derrota">Derrota</option></select></label>
+  <label>Motivo<input type="text" name="motivo" placeholder="Se agotaron las rondas, contagio, bando zombi…"></label>
+  <label>Rondas jugadas<input type="number" name="rondas" min="1" max="20"></label>
+  <label>Duración total (min)<input type="number" name="duracion" min="5" max="240"></label>
+  <label>Ronda de la primera horda<input type="number" name="primeraHorda" min="1" max="20"></label>
+  <label>Hordas<input type="number" name="hordas" min="0"></label>
+  <label>Mordiscos<input type="number" name="mordiscos" min="0"></label>
+  <label>Conversiones<input type="number" name="conversiones" min="0"></label>
+  <label>Crafteos<input type="number" name="crafteos" min="0"></label>
+  <label>Personajes<input type="text" name="personajes" placeholder="Elías, Sunja, Naima, Kenji"></label>
+  <label class="ancho">Tensión de la partida (1 aburrida · 5 al borde de la silla)<div class="escala"><label><input type="radio" name="tension" value="1">1</label><label><input type="radio" name="tension" value="2">2</label><label><input type="radio" name="tension" value="3">3</label><label><input type="radio" name="tension" value="4">4</label><label><input type="radio" name="tension" value="5">5</label></div></label>
+  <label class="ancho">Claridad de las reglas (1 confusas · 5 se entendieron solas)<div class="escala"><label><input type="radio" name="claridad" value="1">1</label><label><input type="radio" name="claridad" value="2">2</label><label><input type="radio" name="claridad" value="3">3</label><label><input type="radio" name="claridad" value="4">4</label><label><input type="radio" name="claridad" value="5">5</label></div></label>
+  <label class="ancho">Diversión del jugador zombi, si lo hubo (1 aburrido · 5 quería serlo todo el mundo)<div class="escala"><label><input type="radio" name="zombi" value="1">1</label><label><input type="radio" name="zombi" value="2">2</label><label><input type="radio" name="zombi" value="3">3</label><label><input type="radio" name="zombi" value="4">4</label><label><input type="radio" name="zombi" value="5">5</label></div></label>
+  <label class="ancho">Lo mejor<textarea name="mejor"></textarea></label>
+  <label class="ancho">Lo peor o lo que se atascó<textarea name="peor"></textarea></label>
+  <label class="ancho">Cambios que propone el grupo<textarea name="cambios"></textarea></label>
+  <div class="acciones"><button type="button" class="primario" id="guardar">Guardar partida</button><button type="button" class="ghost" id="limpiar">Limpiar</button><span class="estado" id="estado">Se guarda en la nube al pulsar.</span></div>
+</form>
+
+<h2>Partidas registradas</h2>
+<div class="tw"><table id="tabla"><thead><tr><th>Fecha</th><th>Misión</th><th>Jug.</th><th>HC</th><th>Resultado</th><th>Rondas</th><th>Min</th><th>1.ª horda</th><th>Mord.</th><th>Conv.</th><th>Tensión</th><th>Notas</th></tr></thead><tbody><tr><td colspan="12" class="muted">Todavía no hay partidas.</td></tr></tbody></table></div>
+</div>
+<script>
+const $=s=>document.querySelector(s); const form=$('#f'); const estado=$('#estado');
+form.elements.fecha.value=new Date().toISOString().slice(0,10);
+// parser del informe del prototipo
+const MAPA={'misión':'mision','jugadores':'jugadores','personajes':'personajes','variante hardcore':'hardcore','resultado':'resultado','motivo':'motivo','rondas':'rondas','duración':'duracion','primera horda':'primeraHorda','hordas':'hordas','mordiscos':'mordiscos','conversiones':'conversiones','crafteos':'crafteos'};
+$('#pegar').addEventListener('input',e=>{ let n=0; for(const linea of e.target.value.split('\n')){ const m=linea.match(/^([^:]+):\s*(.+)$/); if(!m) continue; const campo=MAPA[m[1].trim().toLowerCase()]; if(!campo||!form.elements[campo]) continue; let v=m[2].trim();
+  if(campo==='duracion') v=v.replace(/\D/g,''); if(campo==='primeraHorda') v=v.includes('ninguna')?'':v.replace(/\D/g,''); if(campo==='mordiscos') v=v.split(' ')[0]; if(campo==='hardcore') v=v.startsWith('tard')?'tardio':'inmediato'; if(campo==='resultado') v=v.startsWith('vic')?'victoria':'derrota';
+  form.elements[campo].value=v; n++; } $('#pegado').textContent=n?`${n} campos rellenados desde el informe. Añade la duración si falta, y las notas del grupo.`:''; });
+function leer(){ const fd=new FormData(form); const d={}; for(const [k,v] of fd.entries()){ if(v==='') continue; d[k]=/^\d+$/.test(v)&&!['fecha','motivo','personajes','mejor','peor','cambios'].includes(k)?+v:v; } return d; }
+function pintar(partidas){ const tb=$('#tabla tbody'); tb.innerHTML=''; if(!partidas.length){ tb.innerHTML='<tr><td colspan="12" class="muted">Todavía no hay partidas.</td></tr>'; } partidas.forEach(p=>{ const tr=document.createElement('tr'); const notas=[p.mejor&&'+ '+p.mejor,p.peor&&'− '+p.peor,p.cambios&&'→ '+p.cambios].filter(Boolean).join(' · '); tr.innerHTML=`<td>${p.fecha||''}</td><td>${p.mision||''}</td><td>${p.jugadores??''}</td><td>${p.hardcore==='tardio'?'tardío':p.hardcore==='inmediato'?'inmediato':''}</td><td class="${p.resultado||''}">${p.resultado||''}</td><td>${p.rondas??''}</td><td>${p.duracion??''}</td><td>${p.primeraHorda??''}</td><td>${p.mordiscos??''}</td><td>${p.conversiones??''}</td><td>${p.tension??''}</td><td class="nota">${notas}</td>`; tb.append(tr); });
+  const n=partidas.length; const vic=partidas.filter(p=>p.resultado==='victoria').length; const conT=partidas.filter(p=>p.duracion&&p.rondas); const mpr=conT.length?(conT.reduce((s,p)=>s+p.duracion/p.rondas,0)/conT.length).toFixed(1):'–'; const h=partidas.filter(p=>p.primeraHorda); const ph=h.length?(h.reduce((s,p)=>s+p.primeraHorda,0)/h.length).toFixed(1):'–';
+  $('#resumen').innerHTML=`<div><div class="k">Partidas</div><div class="v">${n}</div></div><div><div class="k">Victorias</div><div class="v">${n?Math.round(100*vic/n)+'%':'–'}</div></div><div><div class="k">Min por ronda</div><div class="v">${mpr}</div></div><div><div class="k">Primera horda</div><div class="v">${ph}</div></div>`; }
+let dbp=(window.claude&&window.claude.use)?window.claude.use('db').catch(()=>null):Promise.resolve(null); let partidas=[];
+dbp.then(db=>{ if(!db){ estado.textContent='Sin conexión con la nube: usa esta página desde claude.ai para guardar.'; return; } db.collection('partidas').orderBy('creada','desc').limit(200).onSnapshot(s=>{ partidas=s.docs.map(d=>d.data()); pintar(partidas); }, ()=>{}); });
+$('#guardar').addEventListener('click',async()=>{ const d=leer(); if(!d.mision||!d.resultado){ estado.className='estado err'; estado.textContent='Falta la misión o el resultado.'; return; } const db=await dbp; if(!db){ estado.className='estado err'; estado.textContent='Sin conexión con la nube.'; return; } estado.className='estado'; estado.textContent='Guardando…'; try{ d.creada=new Date().toISOString(); await db.collection('partidas').add(d); estado.className='estado ok'; estado.textContent='Partida guardada. Gracias.'; form.reset(); form.elements.fecha.value=new Date().toISOString().slice(0,10); $('#pegado').textContent=''; }catch(e){ estado.className='estado err'; estado.textContent='No se pudo guardar ('+(e&&e.code||'error')+').'; } });
+$('#limpiar').addEventListener('click',()=>{ form.reset(); form.elements.fecha.value=new Date().toISOString().slice(0,10); $('#pegado').textContent=''; });
+</script>

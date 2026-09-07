@@ -8,7 +8,7 @@ const CLAVE = 'z2099-m0';
 let G = null, UI = { pantalla: 'inicio', reparto: null, mostrado: null, modo: 'mover', zSel: null, cam: { x: 0, y: 0, s: 1 } };
 
 /* ---------- persistencia ---------- */
-function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ G, UI: { pantalla: UI.pantalla, reparto: UI.reparto, mostrado: UI.mostrado } })); } catch (e) { } }
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ G, UI: { pantalla: UI.pantalla, reparto: UI.reparto, mostrado: UI.mostrado, inicio: UI.inicio } })); } catch (e) { } }
 function cargar() { try { const d = JSON.parse(localStorage.getItem(CLAVE)); if (d && d.G && d.G.version === 2) { G = d.G; Object.assign(UI, d.UI); return true; } } catch (e) { } return false; }
 
 /* ---------- pantallas y modales ---------- */
@@ -43,7 +43,7 @@ function inicio() {
 }
 function reparto() {
   const Rp = UI.reparto;
-  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla, opciones: Rp.opciones || {} }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${MISIONES[G.misionId].rondas} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
+  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla, opciones: Rp.opciones || {} }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; UI.inicio = Date.now(); guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${MISIONES[G.misionId].rondas} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
   const j = Rp.jugadores[Rp.idx]; const usados = Rp.jugadores.filter(x => x.personajeId).map(x => x.personajeId); const libres = Object.keys(PERSONAJES).filter(p => !usados.includes(p)).sort(() => Math.random() - .5);
   const oferta = libres.slice(0, 2);
   pasar(j.nombre, null, () => {
@@ -180,7 +180,10 @@ function pintarZombi() {
 /* ---------- fin ---------- */
 function fin() { mostrar('fin'); const c = $('#p-fin .cont'); c.innerHTML = ''; const F = G.fin; c.append(el('h1', { class: F.resultado }, F.resultado === 'victoria' ? 'Misión cumplida' : 'Misión fracasada'), el('p', {}, F.motivo), el('p', { class: 'muted' }, `${MISIONES[G.misionId].nombre} · ${G.ronda} rondas · ruido final ${G.ruido} · ${G.stats.mordiscos || 0} mordiscos · ${G.stats.conversiones || 0} conversiones · ${G.stats.crafteos || 0} crafteos`));
   const t = el('table', { class: 'expediente' }); t.append(el('tr', {}, el('th', {}, 'Superviviente'), el('th', {}, 'Personaje'), el('th', {}, 'Estado'))); G.jugadores.forEach(j => t.append(el('tr', {}, el('td', {}, j.nombre), el('td', {}, PERSONAJES[j.personajeId].nombre), el('td', { class: j.estado }, { vivo: `vivo (${j.vida} vida)`, caido: 'en el suelo', zombi: 'convertido', muerto: 'muerto', salido: 'a salvo, fuera de la ciudad' }[j.estado]))));
-  c.append(t, el('button', { class: 'mini', onclick: verLog }, 'Ver registro'), el('button', { class: 'primario ancho', onclick: () => { try { localStorage.removeItem(CLAVE); } catch (e) { } G = null; inicio(); } }, 'Nueva partida')); }
+  const min = UI.inicio ? Math.round((Date.now() - UI.inicio) / 60000) : null; const S = G.stats; const hc = G.opciones && G.opciones.hardcoreTardio ? 'tardío' : 'inmediato';
+  const informe = [`Misión: ${MISIONES[G.misionId].nombre}`, `Jugadores: ${G.jugadores.length}`, `Personajes: ${G.jugadores.map(j => PERSONAJES[j.personajeId].nombre.split(' ')[0]).join(', ')}`, `Variante hardcore: ${hc}`, `Resultado: ${F.resultado}`, `Motivo: ${F.motivo}`, `Rondas: ${G.ronda}`, min != null ? `Duración: ${min} min` : null, `Primera horda: ${G.banderas.primeraHorda ? 'ronda ' + G.banderas.primeraHorda : 'ninguna'}`, `Hordas: ${S.hordas || 0}`, `Mordiscos: ${S.mordiscos || 0} (fase ${S.mordisco_fase || 0}, combate ${S.mordisco_combate || 0}, dado ${S.mordisco_dado || 0})`, `Conversiones: ${S.conversiones || 0}`, `Crafteos: ${S.crafteos || 0}`, `Curas: ${S.curas || 0}`, `Ruido final: ${G.ruido}/${G.escalado.ruidoTope}`, `Semilla: ${G.semilla >>> 0}`].filter(Boolean).join('\n');
+  const ta = el('textarea', { readonly: true, class: 'informe' }); ta.value = informe;
+  c.append(t, el('h2', {}, 'Informe para el cuaderno de pruebas'), el('p', { class: 'muted small' }, 'Cópialo y pégalo en el cuaderno: rellena los campos solo.'), ta, el('div', { class: 'acciones' }, el('button', { onclick: () => { ta.select(); try { navigator.clipboard.writeText(informe).then(() => toast('Informe copiado')); } catch (e) { toast('Selecciona el texto y cópialo'); } } }, 'Copiar informe'), el('button', { class: 'mini', onclick: verLog }, 'Ver registro')), el('button', { class: 'primario ancho', onclick: () => { try { localStorage.removeItem(CLAVE); } catch (e) { } G = null; inicio(); } }, 'Nueva partida')); }
 
 /* ---------- tablero ---------- */
 const canvas = () => $('#p-' + (UI.pantalla === 'zombi' ? 'zombi' : 'juego') + ' canvas');
