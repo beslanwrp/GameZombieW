@@ -1,6 +1,6 @@
 # Z-2099 · prototipo M0 de reglas
 
-Prototipo jugable en el navegador para probar las reglas del documento de diseño con un grupo real antes de invertir en arte. Sin 3D: tablero hexagonal plano, dados, cartas, contagio y jugador zombi. Versión 0.2.
+Prototipo jugable en el navegador para probar las reglas del documento de diseño con un grupo real antes de invertir en arte. Sin 3D: tablero hexagonal plano, dados, cartas, contagio y jugador zombi. Versión 0.3. El informe de partidas simuladas a 2 y 4 jugadores está en `07-informe-partidas-simuladas.md`.
 
 ## Cómo probarlo
 
@@ -36,6 +36,10 @@ El simulador `prototipo/sim.mjs` juega partidas completas con jugadores automát
 | Percepción de los zombis | Siempre van al superviviente más cercano | Solo perciben a 4 casillas; si no, van al refugio con ruido alto | La distancia no servía como defensa |
 | Última llamada | Carta de horda cada noche desde la 6 | Cada dos noches desde la 6 | 13 hordas con 10 jugadores |
 | Antibióticos y botiquines en el mazo | 2 y 4 | 4 y 5 | Nadie llegaba a craftear Tratamiento |
+| Cantidades de objetivo | Fijas, pensadas para 10 jugadores | Por tramos de jugadores (hasta 3, 6, 10) | Con 2 y 4 jugadores varias misiones eran imposibles |
+| Kit de misión | No existía | Cartas iniciales por misión (coche y moto en Convoy, radio en Emisora, materiales en Cuarentena…) y receta clave conocida | Los objetivos dependían de cartas rarísimas |
+| Depósito del coche | 4 | 6 | No llegaba del refugio al borde |
+| Los suministros del puente | 10 rondas | 12 rondas | Recorrer el borde en 10 era imposible con pocos jugadores |
 
 ## Resultados del simulador (60 partidas por fila, bots heurísticos)
 

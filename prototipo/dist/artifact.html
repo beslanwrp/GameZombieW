@@ -116,7 +116,7 @@ const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 4, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
 };
 
 const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];
@@ -146,7 +146,7 @@ const OBJETOS = {
   moto:         { nombre: 'Moto (sin gasolina)', tipo: 'vehiculo', peso: 0, clase: 'moto' },
   coche:        { nombre: 'Coche (sin gasolina)', tipo: 'vehiculo', peso: 0, clase: 'coche' },
   moto_dep:     { nombre: 'Moto con depósito', tipo: 'vehiculo', peso: 0, clase: 'moto', porGas: 2, ruido: 1, gasMax: 3, plazas: 1 },
-  coche_dep:    { nombre: 'Coche con depósito', tipo: 'vehiculo', peso: 0, clase: 'coche', porGas: 1, ruido: 2, gasMax: 4, capacidad: 6, atropella: true, plazas: 3 },
+  coche_dep:    { nombre: 'Coche con depósito', tipo: 'vehiculo', peso: 0, clase: 'coche', porGas: 1, ruido: 2, gasMax: 6, capacidad: 6, atropella: true, plazas: 3 },
   bidon:        { nombre: 'Bidón de gasolina', tipo: 'combustible', peso: 2 },
   radio:        { nombre: 'Radio', tipo: 'otro', peso: 1 },
   poncho:       { nombre: 'Poncho', tipo: 'otro', peso: 1 },
@@ -166,7 +166,7 @@ const OBJETOS = {
 
 // Composición del mazo de objetos. La comida sube a 12 para que Invierno sea posible sin Omar.
 const MAZO_OBJETOS = {
-  cinta: 5, clavos: 5, pilas: 5, trapo: 4, botella: 4, tubo: 3, tablas: 3, chapa: 2, walkie: 3,
+  cinta: 5, clavos: 5, pilas: 5, trapo: 4, botella: 4, tubo: 3, tablas: 4, chapa: 3, walkie: 3,
   bate: 3, machete: 2, pistola: 3, rifle: 1,
   botiquin: 5, antibioticos: 4, comida: 12,
   moto: 2, coche: 2, bidon: 3, radio: 2, poncho: 2, receta: 4,
@@ -244,43 +244,45 @@ const PERSONAJES = {
 };
 
 // contagio: cuenta_atras | sin_contagio | hardcore | ambos (hardcore y sin contagio a la vez)
+// cantidades: objetivo según jugadores, por tramos (hasta 3, hasta 6, hasta 10). kit: cartas que se reparten al empezar; un array interno va entero a un mismo jugador.
+function cantidadObjetivo(M, n) { if (!M.cantidades) return M.cantidad; return n <= 3 ? M.cantidades[3] : n <= 6 ? M.cantidades[6] : M.cantidades[10]; }
 const MISIONES = {
   farmacia: { nombre: 'Farmacia Central', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Traed 3 antibióticos al refugio. Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
-    objetivo: 'antibioticos_refugio', cantidad: 3, farmacias: 2 },
+    texto: 'Traed antibióticos al refugio (2, 3 o 4 según el tamaño del grupo). Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
+    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, kit: ['botiquin'] },
   sin_gota: { nombre: 'Sin una gota', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10,
     texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.',
-    objetivo: 'todos_helipuerto', especial: 'helipuerto' },
+    objetivo: 'todos_helipuerto', especial: 'helipuerto', kit: ['antibioticos'] },
   granja:   { nombre: 'La granja', etiquetas: ['HC', 'R'], contagio: 'hardcore', rondas: 12,
-    texto: 'Conseguid las semillas (llegan por evento) y 2 bidones, dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
-    objetivo: 'granja', semillas: true },
+    texto: 'Conseguid las semillas (llegan por evento) y bidones (1 o 2 según el grupo), dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
+    objetivo: 'granja', semillas: true, cantidades: { 3: 1, 6: 2, 10: 2 }, kit: ['bidon'] },
   emisora:  { nombre: 'La emisora', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Craftead un Señuelo, llevadlo a la torre de radio y mantened a un superviviente allí con el señuelo sonando 2 noches.',
-    objetivo: 'torre', especial: 'torre', cantidad: 2 },
+    texto: 'Craftead un Señuelo, llevadlo a la torre de radio y mantened a un superviviente allí con el señuelo sonando 2 noches. Empezáis con una radio y pilas.',
+    objetivo: 'torre', especial: 'torre', cantidad: 2, kit: [['radio', 'pilas']] },
   convoy:   { nombre: 'El convoy', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 9,
-    texto: 'Craftead vehículos con depósito y sacad a 6 supervivientes (o a todos si sois menos) por cualquier borde del mapa, a bordo.',
-    objetivo: 'convoy', cantidad: 6 },
+    texto: 'Craftead vehículos con depósito y sacad de la ciudad a bordo a 2, 4 o 6 supervivientes según el tamaño del grupo. Empezáis con un coche, una moto y un bidón.',
+    objetivo: 'convoy', cantidades: { 3: 2, 6: 4, 10: 6 }, kit: [['coche', 'bidon'], ['moto', 'bidon']] },
   cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 8,
-    texto: 'Levantad barricadas en las 6 aristas del refugio antes de la ronda 8 sin un solo contagio.',
-    objetivo: 'cuarentena', cantidad: 6 },
+    texto: 'Levantad barricadas en las aristas del refugio (3, 4 o 6 según el tamaño del grupo) antes de la ronda 8 sin un solo contagio. Empezáis con materiales para dos.',
+    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 4, 10: 6 }, kit: [['tablas', 'chapa', 'clavos'], ['tablas', 'chapa', 'clavos'], 'antibioticos'] },
   invierno: { nombre: 'Invierno', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 10,
-    texto: 'Acumulad 10 cartas de comida en el refugio antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
-    objetivo: 'comida_refugio', cantidad: 10 },
+    texto: 'Acumulad comida en el refugio (4, 6 o 10 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 10 }, kit: ['comida', 'comida'] },
   deposito: { nombre: 'El depósito', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 12,
-    texto: 'Llevad 4 bidones de gasolina al generador del norte.',
-    objetivo: 'deposito', especial: 'generador', cantidad: 4 },
+    texto: 'Llevad los bidones de gasolina al generador del norte (2, 3 o 4 según el tamaño del grupo).',
+    objetivo: 'deposito', especial: 'generador', cantidades: { 3: 2, 6: 3, 10: 4 }, kit: ['bidon'] },
   ultima:   { nombre: 'Última llamada', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 12,
     texto: 'Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.',
     objetivo: 'sobrevivir', hordaDesde: 6 },
-  suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Recoged los 5 suministros marcados, repartidos por las losetas de borde.',
-    objetivo: 'suministros', cantidad: 5, suministros: 5 },
+  suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 12,
+    texto: 'Recoged los suministros marcados de las losetas de borde (3, 4 o 5 según el tamaño del grupo).',
+    objetivo: 'suministros', cantidades: { 3: 3, 6: 4, 10: 5 }, suministros: 5, kit: [['moto', 'bidon']] },
   cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
     texto: 'Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.',
-    objetivo: 'cero' },
+    objetivo: 'cero', kit: ['antibioticos', 'antibioticos'] },
   protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['HC', 'SC', 'T'], contagio: 'ambos', rondas: 12,
-    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión.',
-    objetivo: 'protocolo', especial: 'laboratorio', muestras: true },
+    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión. Empezáis con un rifle y un silenciador.',
+    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']] },
 };
 
 const EVENTOS = [
@@ -360,10 +362,10 @@ const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
-    recetasConocidas: Object.keys(RECETAS).filter(r => RECETAS[r].inicial), almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
+    recetasConocidas: [...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
   const esc = escalado(jugadores.length); G.escalado = esc; G.ruido = esc.ruidoInicial;
-  const M = MISIONES[misionId];
+  const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length);
   jugadores.forEach((j, i) => {
     const p = PERSONAJES[j.personajeId];
     const jug = { id: i, nombre: j.nombre, personajeId: j.personajeId, pos: '0,0', vida: p.vida, vidaMax: p.vida, panico: 0, mordido: null, estado: 'vivo',
@@ -371,6 +373,7 @@ function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
     p.inicial.forEach(id => jug.mano.push(carta(G, id)));
     G.jugadores.push(jug);
   });
+  (M.kit || []).forEach((entrada, i) => { const ids = Array.isArray(entrada) ? entrada : [entrada]; let j = G.jugadores[i % G.jugadores.length]; if (ids.some(id => OBJETOS[id].fuego || OBJETOS[id].clase) && (j.personajeId === 'ruy')) j = G.jugadores[(i + 1) % G.jugadores.length]; ids.forEach(id => j.mano.push(carta(G, id))); });
   for (const [id, n] of Object.entries(MAZO_OBJETOS)) for (let i = 0; i < n; i++) G.mazoObjetos.push(id);
   barajar(G, G.mazoObjetos);
   G.mazoHordas = barajar(G, HORDAS.map((h, i) => i));
@@ -762,7 +765,7 @@ function nocheB(G) {
   for (const c of Object.values(G.casillas)) { if (c.fuego) c.fuego--; if (c.senuelo) c.senuelo--; }
   for (const j of G.jugadores) if (j.camuflaje) j.camuflaje--;
   G.enlaces = G.enlaces.map(e => ({ ...e, rondas: e.rondas - 1 })).filter(e => e.rondas > 0);
-  if (M.objetivo === 'torre') { const t = G.casillas[G.especiales.torre]; if (t && (t.senuelo > 0 || jugadoresEn(G, t.k).some(j => j.mano.some(c => c.id === 'senuelo'))) && jugadoresEn(G, t.k).some(j => j.estado === 'vivo')) { G.progreso++; log(G, `La emisora transmite (${G.progreso}/${M.cantidad}).`, 'bien'); } }
+  if (M.objetivo === 'torre') { const t = G.casillas[G.especiales.torre]; if (t && (t.senuelo > 0 || jugadoresEn(G, t.k).some(j => j.mano.some(c => c.id === 'senuelo'))) && jugadoresEn(G, t.k).some(j => j.estado === 'vivo')) { G.progreso++; log(G, `La emisora transmite (${G.progreso}/${G.cantidad}).`, 'bien'); } }
   G.niebla = !!G.banderas.nieblaProxima; G.banderas.nieblaProxima = false;
   if (!G.banderas.primeraHorda && Object.values(G.zombis).some(esHorda)) G.banderas.primeraHorda = G.ronda;
   comprobarFin(G, true); if (G.fin) return;
@@ -807,21 +810,21 @@ function comprobarFin(G, finRonda = false) {
   if (perdidos >= umbral) G.fin = { resultado: 'derrota', motivo: G.jugadores.some(j => j.estado === 'zombi') ? 'El bando zombi ha alcanzado a la mitad del equipo.' : 'No queda nadie en pie.' };
   const salidos = G.jugadores.filter(j => j.estado === 'salido').length; const enPie = vivos(G).length + salidos;
   if (!G.fin) {
-    if (M.objetivo === 'convoy' && salidos >= Math.min(M.cantidad, N)) G.fin = { resultado: 'victoria', motivo: `${salidos} supervivientes salen de la ciudad en el convoy.` };
-    if (M.objetivo === 'cuarentena' && vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'El refugio queda sellado. Cuarentena completa.' };
-    if (M.objetivo === 'suministros' && G.almacen.suministro >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'Los cinco suministros del puente están a salvo.' };
+    if (M.objetivo === 'convoy' && salidos >= Math.min(G.cantidad, N)) G.fin = { resultado: 'victoria', motivo: `${salidos} supervivientes salen de la ciudad en el convoy.` };
+    if (M.objetivo === 'cuarentena' && vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'El refugio queda sellado. Cuarentena completa.' };
+    if (M.objetivo === 'suministros' && G.almacen.suministro >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'Los cinco suministros del puente están a salvo.' };
     if (M.objetivo === 'cero' && G.losetasBorde.every(l => G.casillas[l].revelada)) G.fin = { resultado: 'victoria', motivo: 'Las ocho losetas de borde exploradas sin un solo contagio.' };
   }
   if (!G.fin && finRonda) {
-    if (M.objetivo === 'antibioticos_refugio' && G.almacen.antibioticos >= M.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.antibioticos} antibióticos en el refugio.` };
-    if (M.objetivo === 'comida_refugio' && G.almacen.comida >= M.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.comida} raciones almacenadas. El invierno puede venir.` };
-    if (M.objetivo === 'deposito' && G.almacen.bidon >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'El generador ruge. Hay luz en el refugio.' };
+    if (M.objetivo === 'antibioticos_refugio' && G.almacen.antibioticos >= G.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.antibioticos} antibióticos en el refugio.` };
+    if (M.objetivo === 'comida_refugio' && G.almacen.comida >= G.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.comida} raciones almacenadas. El invierno puede venir.` };
+    if (M.objetivo === 'deposito' && G.almacen.bidon >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'El generador ruge. Hay luz en el refugio.' };
     if (M.objetivo === 'protocolo' && G.almacen.muestras >= 3) G.fin = { resultado: 'victoria', motivo: 'Las tres muestras llegan al laboratorio. El protocolo Z-2099 se activa.' };
-    if (M.objetivo === 'torre' && G.progreso >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
+    if (M.objetivo === 'torre' && G.progreso >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
     if (M.objetivo === 'todos_helipuerto') { const v = vivos(G); if (v.length && v.every(j => j.pos === G.especiales.helipuerto && j.estado === 'vivo')) G.fin = { resultado: 'victoria', motivo: 'Todo el equipo despega sin una gota de sangre infectada.' }; }
     if (!G.fin && G.ronda >= M.rondas) {
       if (M.objetivo === 'sobrevivir') G.fin = enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${enPie} de ${N} responden a la última llamada.` } : { resultado: 'derrota', motivo: 'Demasiados caídos cuando llegó la última llamada.' };
-      else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= 2 && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
+      else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= G.cantidad && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
       else G.fin = { resultado: 'derrota', motivo: 'Se agotaron las rondas.' };
     }
   }
@@ -901,9 +904,9 @@ function tras(res) { if (res && res.ok === false && res.motivo) toast(res.motivo
 /* ---------- cabecera ---------- */
 function textoObjetivo() {
   const M = MISIONES[G.misionId]; const A = G.almacen;
-  return { antibioticos_refugio: `Antibióticos en refugio ${A.antibioticos}/${M.cantidad}`, comida_refugio: `Comida en refugio ${A.comida}/${M.cantidad}`, todos_helipuerto: 'Todos al helipuerto (H)', sobrevivir: `Sobrevivir con al menos ${Math.ceil(G.jugadores.length / 2)}`,
-    granja: `Semillas ${A.semillas}/1 · Bidones ${A.bidon}/2 · aguantar`, torre: `Emisora ${G.progreso}/${M.cantidad} noches`, convoy: `Salidos ${G.jugadores.filter(j => j.estado === 'salido').length}/${Math.min(M.cantidad, G.jugadores.length)}`,
-    cuarentena: `Barricadas del refugio ${vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length}/6`, deposito: `Bidones en el generador ${A.bidon}/${M.cantidad}`, suministros: `Suministros ${A.suministro}/${M.cantidad}`,
+  return { antibioticos_refugio: `Antibióticos en refugio ${A.antibioticos}/${G.cantidad}`, comida_refugio: `Comida en refugio ${A.comida}/${G.cantidad}`, todos_helipuerto: 'Todos al helipuerto (H)', sobrevivir: `Sobrevivir con al menos ${Math.ceil(G.jugadores.length / 2)}`,
+    granja: `Semillas ${A.semillas}/1 · Bidones ${A.bidon}/${G.cantidad} · aguantar`, torre: `Emisora ${G.progreso}/${G.cantidad} noches`, convoy: `Salidos ${G.jugadores.filter(j => j.estado === 'salido').length}/${Math.min(G.cantidad, G.jugadores.length)}`,
+    cuarentena: `Barricadas del refugio ${vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length}/${G.cantidad}`, deposito: `Bidones en el generador ${A.bidon}/${G.cantidad}`, suministros: `Suministros ${A.suministro}/${G.cantidad}`,
     cero: `Losetas de borde ${G.losetasBorde.filter(l => G.casillas[l].revelada).length}/8`, protocolo: `Muestras ${A.muestras}/3` }[M.objetivo] || '';
 }
 function cabecera(root) {

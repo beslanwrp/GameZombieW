@@ -18,10 +18,10 @@ function objetivoBot(G, j) {
     case 'antibioticos_refugio': if (tiene('antibioticos')) return '0,0'; return (cerca(c => c.tipo === 'farmacia' && c.saqueos < 2) || cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
     case 'todos_helipuerto': return G.especiales.helipuerto;
     case 'comida_refugio': if (cuenta('comida') >= 2) return '0,0'; return (cerca(c => c.tipo === 'edificio' && saqueable(c) && c.revelada) || oculta())?.k;
-    case 'sobrevivir': case 'granja': if (M.objetivo === 'granja' && (tiene('bidon') || tiene('semillas'))) return '0,0'; if (M.objetivo === 'granja' && G.almacen.bidon < 2) return (cerca(c => c.tipo === 'gasolinera' && c.saqueos < 2) || oculta())?.k; return R.dist(j.pos, '0,0') > 2 ? '0,0' : (cerca(c => saqueable(c) && c.revelada && R.dist(c.k, '0,0') <= 3) || '0,0')?.k || '0,0';
-    case 'torre': if (tiene('senuelo')) return G.especiales.torre; if (tiene('radio') && tiene('pilas')) return j.pos; return (cerca(c => c.tipo === 'taller' && c.saqueos < 2) || cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
-    case 'convoy': if (j.vehiculo) return cerca(c => R.esBorde(G, c.k) && ['calle', 'entrada', 'gasolinera'].includes(c.tipo))?.k; if (tiene('bidon') && (tiene('moto') || tiene('coche'))) return j.pos; if (!tiene('bidon')) return (cerca(c => c.tipo === 'gasolinera' && c.saqueos < 2) || oculta())?.k; return (cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
-    case 'cuarentena': if (tiene('barricada')) return '0,0'; return (cerca(c => c.tipo === 'taller' && c.saqueos < 2) || cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
+    case 'sobrevivir': case 'granja': if (M.objetivo === 'granja' && (tiene('bidon') || tiene('semillas'))) return '0,0'; if (M.objetivo === 'granja' && G.almacen.bidon < G.cantidad) return (cerca(c => c.tipo === 'gasolinera' && c.saqueos < 2) || oculta())?.k; return R.dist(j.pos, '0,0') > 2 ? '0,0' : (cerca(c => saqueable(c) && c.revelada && R.dist(c.k, '0,0') <= 3) || '0,0')?.k || '0,0';
+    case 'torre': if (tiene('senuelo') || G.casillas[G.especiales.torre].senuelo > 0) return G.especiales.torre; if (tiene('radio') && tiene('pilas')) return j.pos; return (cerca(c => c.tipo === 'taller' && c.saqueos < 2) || cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
+    case 'convoy': if (j.vehiculo && G.ronda <= 4 && R.pasajerosDe(G, j).length < OBJETOS[j.vehiculo.id].plazas && R.vivos(G).some(x => x.id !== j.id && !x.vehiculo && x.pasajeroDe == null && !x.mano.some(c => OBJETOS[c.id].porGas))) return j.pos; if (j.vehiculo) { const { D } = bfs(G, j.pos, c => !c.fuego && ['calle', 'refugio', 'entrada', 'helipuerto', 'gasolinera'].includes(c.tipo)); return C.filter(c => R.esBorde(G, c.k) && D[c.k] != null).sort((a, b) => D[a.k] - D[b.k])[0]?.k; } if (j.pasajeroDe != null) return j.pos; { const cond = R.vivos(G).find(x => x.id !== j.id && x.vehiculo); if (cond && !tiene('moto_dep') && !tiene('coche_dep')) return cond.pos; } if (tiene('bidon') && (tiene('moto') || tiene('coche'))) return j.pos; if (!tiene('bidon')) return (cerca(c => c.tipo === 'gasolinera' && c.saqueos < 2) || oculta())?.k; return (cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
+    case 'cuarentena': if (tiene('barricada') || (tiene('tablas') && tiene('chapa') && tiene('clavos') && G.recetasConocidas.includes('barricada'))) return '0,0'; return (cerca(c => c.tipo === 'taller' && c.saqueos < 2) || cerca(c => saqueable(c) && c.revelada) || oculta())?.k;
     case 'deposito': if (tiene('bidon')) return G.especiales.generador; return (cerca(c => c.tipo === 'gasolinera' && c.saqueos < 2) || oculta())?.k;
     case 'suministros': return (cerca(c => c.revelada && c.marca === 'suministro') || cerca(c => !c.revelada && R.esBorde(G, c.k)))?.k;
     case 'cero': return cerca(c => !c.revelada && G.losetasBorde.includes(c.loseta))?.k;
@@ -29,36 +29,43 @@ function objetivoBot(G, j) {
   }
   return oculta()?.k;
 }
+function amenaza(G, k) { let t = 0; for (const z of Object.values(G.zombis)) { const d = R.dist(z.pos, k); if (d <= 1) t += z.n * (d === 0 ? 3 : 1); else if (d === 2) t += z.n * 0.3; } return t; }
 function turnoBot(G) {
   const j = R.turnoActual(G); const T = G.turno; if (T.levantandose) return R.terminarTurno(G, true);
-  const M = R.mision(G);
-  // curarse
-  if (j.mordido) { const t = j.mano.find(c => c.id === 'tratamiento') || j.mano.find(c => c.id === 'antibioticos'); if (t && T.acciones) R.curar(G, t.uid, j.id); else if (T.acciones && j.mano.some(c => c.id === 'botiquin') && j.mano.some(c => c.id === 'antibioticos') && G.recetasConocidas.includes('tratamiento')) { R.craftear(G, 'tratamiento'); const tt = j.mano.find(c => c.id === 'tratamiento'); if (tt && T.acciones) R.curar(G, tt.uid, j.id); } }
-  if (j.vida <= 1 && T.acciones) { const b = j.mano.find(c => c.id === 'botiquin'); if (b) R.curar(G, b.uid, j.id); }
-  // huir de una horda si se puede
-  if (R.zombisEn(G, j.pos).some(R.esHorda)) { const huida = R.destinosPosibles(G).filter(k => !R.zombisEn(G, k).length).sort((a, b) => R.dist(a, '0,0') - R.dist(b, '0,0'))[0]; if (huida) R.mover(G, huida); }
-  // combate en la casilla
+  const M = R.mision(G); const tiene = id => j.mano.find(c => c.id === id); const puedeReceta = r => G.recetasConocidas.includes(r) && RECETAS[r].ing.every((ing, i) => j.mano.filter(c => c.id === ing).length >= RECETAS[r].ing.slice(0, i + 1).filter(x => x === ing).length);
+  // 1. curarse o curar al compañero mordido
+  const mordidos = R.vivos(G).filter(x => x.mordido && R.dist(x.pos, j.pos) <= 1 && (x.id === j.id || x.personajeId !== 'beatriz')).sort((a, b) => (a.id === j.id ? -1 : 1));
+  for (const m of mordidos) { if (T.acciones <= 0) break; if (!tiene('tratamiento') && puedeReceta('tratamiento')) R.craftear(G, 'tratamiento'); const c = tiene('tratamiento') || tiene('antibioticos'); if (c) R.curar(G, c.uid, m.id); else if (m.id !== j.id && j.mano.some(x => OBJETOS[x.id].amputa) && R.reglaCA(G)) R.amputar(G, m.id); }
+  if (T.acciones > 0 && j.vida <= 1) { const b = tiene('botiquin'); if (b) R.curar(G, b.uid, j.id); }
+  const herido = R.vivos(G).find(x => x.id !== j.id && x.vida <= 1 && R.dist(x.pos, j.pos) <= 1 && x.personajeId !== 'beatriz'); if (T.acciones > 0 && herido && tiene('botiquin')) R.curar(G, tiene('botiquin').uid, herido.id);
+  const caido = R.vivos(G).find(x => x.estado === 'caido' && R.dist(x.pos, j.pos) <= 1); if (T.acciones > 0 && caido) R.levantar(G, caido.id);
+  // 2. peligro inmediato: molotov a una horda adyacente, señuelo si la horda viene, huir
+  const hordaAdy = Object.values(G.zombis).filter(z => R.esHorda(z) && R.dist(z.pos, j.pos) === 1 && !R.jugadoresEn(G, z.pos).length)[0];
+  if (T.acciones > 0 && hordaAdy && tiene('molotov')) R.usar(G, tiene('molotov').uid, hordaAdy.pos);
+  const hordaCerca = Object.values(G.zombis).some(z => R.esHorda(z) && R.dist(z.pos, j.pos) <= 3);
+  if (T.acciones > 0 && hordaCerca && tiene('senuelo') && !G.casillas[j.pos].senuelo && R.dist(j.pos, '0,0') > 1) R.usar(G, tiene('senuelo').uid);
+  if (T.acciones > 0 && hordaCerca && tiene('camuflaje') && !j.camuflaje) R.usar(G, tiene('camuflaje').uid);
+  if (R.zombisEn(G, j.pos).some(R.esHorda) || (R.zombisEn(G, j.pos).length && j.vida <= 1)) { const huida = R.destinosPosibles(G).filter(k => !R.zombisEn(G, k).length).sort((a, b) => amenaza(G, a) - amenaza(G, b))[0]; if (huida) R.mover(G, huida); }
+  // 3. combate: lo que hay en la casilla, con la mejor arma; a distancia solo objetivos que valgan la pena y sin disparar la alarma
   const mejorArma = (d) => R.armasDe(G, j).filter(a => d === 0 || OBJETOS[a.id].distancia).sort((a, b) => (OBJETOS[b.id].dados + (OBJETOS[b.id].extra || 0)) - (OBJETOS[a.id].dados + (OBJETOS[a.id].extra || 0)))[0];
-  let guard = 0; while (T.acciones > 0 && guard++ < 4) { const o = R.objetivosAtaque(G).filter(x => x.d === 0)[0]; if (!o) break; const a = mejorArma(0); R.atacar(G, o.z.id, a?.uid); if (G.fin) return; }
-  // disparo a distancia si el ruido lo permite
-  if (T.acciones > 0 && G.ruido < 5) { const o = R.objetivosAtaque(G).filter(x => x.d > 0).sort((a, b) => a.d - b.d)[0]; const a = mejorArma(1); if (o && a && (OBJETOS[a.id].ruido === 0 || j.mano.some(c => c.id === 'silenciador') || R.esHorda(o.z) === false)) R.atacar(G, o.z.id, a.uid); }
-  // crafteo útil
-  const quiere = { torre: ['senuelo'], convoy: ['coche_dep', 'moto_dep'], cuarentena: ['barricada'] }[M.objetivo] || [];
-  for (const r of [...quiere, 'bate_clavos', 'tratamiento', 'molotov', 'camuflaje', 'silenciador']) { if (T.acciones > 0 && G.recetasConocidas.includes(r) && !(r === 'tratamiento' && !j.mordido && !vivosMordidos(G))) { const ok = RECETAS[r].ing.every((ing, i) => j.mano.filter(c => c.id === ing).length >= RECETAS[r].ing.slice(0, i + 1).filter(x => x === ing).length); if (ok) R.craftear(G, r); } }
-  // usar objetos de misión
-  if (T.acciones > 0 && M.objetivo === 'cuarentena' && j.pos === '0,0') { const b = j.mano.find(c => c.id === 'barricada'); const v = R.vecinos('0,0').find(k => G.casillas[k] && !R.hayBarricada(G, '0,0', k)); if (b && v) R.usar(G, b.uid, v); }
-  if (T.acciones > 0 && M.objetivo === 'torre' && j.pos === G.especiales.torre) { const s = j.mano.find(c => c.id === 'senuelo'); if (s && !G.casillas[j.pos].senuelo) R.usar(G, s.uid); }
-  if (T.acciones > 0 && M.objetivo === 'convoy' && !j.vehiculo && j.pasajeroDe == null) { const v = j.mano.find(c => OBJETOS[c.id].porGas); if (v) R.vehiculo(G, v.uid); else { const c = R.conductoresDisponibles(G)[0]; if (c) R.subirPasajero(G, c.id); } }
+  let guard = 0; while (T.acciones > 0 && guard++ < 4) { const o = R.objetivosAtaque(G).filter(x => x.d === 0).sort((a, b) => a.z.n - b.z.n)[0]; if (!o) break; if (R.esHorda(o.z) && T.pasos > 0) break; R.atacar(G, o.z.id, mejorArma(0)?.uid); if (G.fin) return; }
+  if (T.acciones > 0) { const o = R.objetivosAtaque(G).filter(x => x.d > 0 && !R.esHorda(x.z) && x.z.tipo !== 'acorazado').sort((a, b) => a.d - b.d)[0]; const a = mejorArma(1); if (o && a && (OBJETOS[a.id].ruido === 0 || tiene('silenciador') || G.ruido <= G.escalado.ruidoTope - 4)) R.atacar(G, o.z.id, a.uid); }
+  // 4. crafteo útil para la misión y para sobrevivir
+  const quiere = { torre: ['senuelo'], convoy: ['coche_dep', 'moto_dep'], cuarentena: ['barricada'], deposito: [], protocolo: ['silenciador'] }[M.objetivo] || [];
+  for (const r of [...quiere, 'bate_clavos', 'molotov', 'camuflaje', 'silenciador', 'enlace']) if (T.acciones > 0 && puedeReceta(r) && !(r === 'enlace' && G.enlaces.length)) R.craftear(G, r);
+  if (T.acciones > 0 && M.objetivo === 'cuarentena' && j.pos === '0,0') { const b = tiene('barricada'); const v = R.vecinos('0,0').find(k => G.casillas[k] && !R.hayBarricada(G, '0,0', k)); if (b && v) R.usar(G, b.uid, v); }
+  if (T.acciones > 0 && M.objetivo === 'torre' && j.pos === G.especiales.torre) { const sn = tiene('senuelo'); if (sn && !G.casillas[j.pos].senuelo) R.usar(G, sn.uid); }
+  if (T.acciones > 0 && M.objetivo === 'convoy' && !j.vehiculo && j.pasajeroDe == null) { const v = j.mano.find(c => OBJETOS[c.id].porGas); if (v && j.personajeId !== 'ruy') R.vehiculo(G, v.uid); else { const c = R.conductoresDisponibles(G)[0]; if (c) R.subirPasajero(G, c.id); } }
   if (R.puedeSalir(G)) { R.salir(G); return R.terminarTurno(G, true); }
-  // movimiento hacia el objetivo
-  const permitir = c => !c.fuego && (!R.zombisEn(G, c.k).length || c.k === objetivo);
-  let objetivo = objetivoBot(G, j); let pasos = 0;
-  while (objetivo && objetivo !== j.pos && pasos++ < 8) { const paso = primerPaso(G, j.pos, objetivo, permitir); if (!paso || !R.destinosPosibles(G).includes(paso)) break; R.mover(G, paso); if (G.fin) return; if (M.objetivo === 'torre' && j.pos === objetivo) break; }
-  // saquear si toca
+  { const obj0 = objetivoBot(G, j); const v = j.mano.find(c => OBJETOS[c.id].porGas); if (T.acciones > 0 && v && !j.vehiculo && j.pasajeroDe == null && j.personajeId !== 'ruy' && obj0 && R.dist(j.pos, obj0) > 3 && v.gas >= 1) R.vehiculo(G, v.uid); if (T.acciones > 0 && j.vehiculo && j.vehiculo.gas < 1 && tiene('bidon')) R.usar(G, tiene('bidon').uid); if (T.acciones > 0 && j.vehiculo && j.vehiculo.gas < 1 && !tiene('bidon') && M.objetivo !== 'convoy') R.vehiculo(G); }
+  // 5. moverse hacia el objetivo evitando terminar junto a zombis
+  let objetivo = objetivoBot(G, j); const CALLE = ['calle', 'refugio', 'entrada', 'helipuerto', 'gasolinera', 'generador', 'torre', 'laboratorio']; const permitir = c => !c.fuego && (!R.zombisEn(G, c.k).length || c.k === objetivo) && (!j.vehiculo || CALLE.includes(c.tipo));
+  let pasos = 0; while (objetivo && objetivo !== j.pos && pasos++ < 8) { const paso = primerPaso(G, j.pos, objetivo, permitir); if (!paso || !R.destinosPosibles(G).includes(paso)) break; const ultimo = R.costeMovimiento(G, j, paso).coste >= T.pasos; if (ultimo && paso !== objetivo && amenaza(G, paso) > amenaza(G, j.pos) + 1) break; R.mover(G, paso); if (G.fin) return; if (M.objetivo === 'torre' && j.pos === objetivo) break; }
+  // 6. saquear, dar cartas de misión al que va al objetivo, descansar
   guard = 0; while (T.acciones > 0 && guard++ < 2) { const r = R.saquear(G); if (!r.ok) break; }
-  if (T.acciones > 0 && !Object.values(G.zombis).some(z => R.dist(z.pos, j.pos) <= 2) && j.vida < j.vidaMax) R.descansar(G);
-  // no terminar pegado a un zombi si queda paso
-  if (T.pasos > 0 && R.vecinos(j.pos).concat(j.pos).some(k => R.zombisEn(G, k).length)) { const seguro = R.destinosPosibles(G).filter(k => !R.vecinos(k).concat(k).some(v => R.zombisEn(G, v).length))[0]; if (seguro) R.mover(G, seguro); }
+  if (T.acciones > 0) { const util = { antibioticos_refugio: 'antibioticos', comida_refugio: 'comida', deposito: 'bidon', granja: 'bidon' }[M.objetivo]; if (util) { const dest = R.destinatarios(G).find(x => R.dist(x.pos, j.pos) <= 1 && R.dist(x.pos, '0,0') < R.dist(j.pos, '0,0') && x.mano.filter(c => c.id === util).length >= 1); const cs = j.mano.filter(c => c.id === util); if (dest && cs.length && R.peso(G, dest) + cs.length <= R.capacidad(G, dest)) R.dar(G, dest.id, cs.map(c => c.uid)); } }
+  if (T.acciones > 0 && !Object.values(G.zombis).some(z => R.dist(z.pos, j.pos) <= 2) && (j.vida < j.vidaMax || j.panico > 0)) R.descansar(G);
+  if (T.pasos > 0 && R.vecinos(j.pos).concat(j.pos).some(k => R.zombisEn(G, k).length)) { const seguro = R.destinosPosibles(G).filter(k => !R.zombisEn(G, k).length).sort((a, b) => amenaza(G, a) - amenaza(G, b))[0]; if (seguro && amenaza(G, seguro) < amenaza(G, j.pos)) R.mover(G, seguro); }
   return R.terminarTurno(G, true);
 }
 function vivosMordidos(G) { return R.vivos(G).some(x => x.mordido); }
@@ -76,7 +83,10 @@ export function jugar(misionId, n, semilla, opciones = {}, motor = Motor) {
   R = Motor; return G;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+export function narrar(misionId, n, semilla, opciones = {}) { const G = jugar(misionId, n, semilla, opciones); const claves = /Mordisco|Conversión|Carta de horda|Victoria|Derrota|Evento|se salva|amputa|craftea|deja |recoge un suministro|entrega|salen de|transmite|Loseta de borde|Muerte/; const lineas = G.log.filter(l => claves.test(l.texto)).map(l => `R${l.ronda} ${l.texto}`); return { G, lineas }; }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv[2] === 'narrar') { const { G, lineas } = narrar(process.argv[3], +process.argv[4] || 4, +process.argv[5] || 1); console.log(lineas.join('\n')); console.log('FIN', G.fin.resultado, G.fin.motivo, 'ronda', G.ronda, JSON.stringify(G.stats)); }
+else if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 const N = +process.argv[2] || 40; const misiones = process.argv[3] && process.argv[3] !== 'todas' ? process.argv[3].split(',') : Object.keys(MISIONES); const tam = (process.argv[4] || '4,6,10').split(',').map(Number);
 const filas = [];
 for (const m of misiones) for (const n of tam) {

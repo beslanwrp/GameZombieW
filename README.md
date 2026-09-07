@@ -16,6 +16,7 @@ Hito M0 v0.2: prototipo web de reglas completo (`prototipo/dist/index.html`) con
 | `docs/03-documento-de-diseno.md` | Documento de diseño completo v1.0: reglas, ronda, dados, ruido, contagio, jugador zombi, misiones, cartas, personajes, cámara 3D libre, red, tecnología y plan |
 | `docs/04-prototipo-m0.md` | Prototipo M0: cómo probarlo, qué implementa, simplificaciones y qué observar en las pruebas |
 | `docs/05-hoja-de-reglas.md` | Hoja de reglas de una página para la mesa |
+| `docs/07-informe-partidas-simuladas.md` | Partidas simuladas a 2 y 4 jugadores: método, resultados por misión, conclusiones y qué llevar a la mesa |
 | `datos/` | Hoja de equilibrio exportada a JSON para Unity (generada, no se edita) |
 | `prototipo/trazas/` | 24 trazas doradas para verificar el porte del motor a C# |
 | `docs/06-plan-m1.md` | Plan del corte vertical en Unity: arquitectura, porte del motor con pruebas doradas, red, arte, sprints y riesgos |

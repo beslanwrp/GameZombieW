@@ -71,9 +71,9 @@ function tras(res) { if (res && res.ok === false && res.motivo) toast(res.motivo
 /* ---------- cabecera ---------- */
 function textoObjetivo() {
   const M = MISIONES[G.misionId]; const A = G.almacen;
-  return { antibioticos_refugio: `Antibióticos en refugio ${A.antibioticos}/${M.cantidad}`, comida_refugio: `Comida en refugio ${A.comida}/${M.cantidad}`, todos_helipuerto: 'Todos al helipuerto (H)', sobrevivir: `Sobrevivir con al menos ${Math.ceil(G.jugadores.length / 2)}`,
-    granja: `Semillas ${A.semillas}/1 · Bidones ${A.bidon}/2 · aguantar`, torre: `Emisora ${G.progreso}/${M.cantidad} noches`, convoy: `Salidos ${G.jugadores.filter(j => j.estado === 'salido').length}/${Math.min(M.cantidad, G.jugadores.length)}`,
-    cuarentena: `Barricadas del refugio ${vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length}/6`, deposito: `Bidones en el generador ${A.bidon}/${M.cantidad}`, suministros: `Suministros ${A.suministro}/${M.cantidad}`,
+  return { antibioticos_refugio: `Antibióticos en refugio ${A.antibioticos}/${G.cantidad}`, comida_refugio: `Comida en refugio ${A.comida}/${G.cantidad}`, todos_helipuerto: 'Todos al helipuerto (H)', sobrevivir: `Sobrevivir con al menos ${Math.ceil(G.jugadores.length / 2)}`,
+    granja: `Semillas ${A.semillas}/1 · Bidones ${A.bidon}/${G.cantidad} · aguantar`, torre: `Emisora ${G.progreso}/${G.cantidad} noches`, convoy: `Salidos ${G.jugadores.filter(j => j.estado === 'salido').length}/${Math.min(G.cantidad, G.jugadores.length)}`,
+    cuarentena: `Barricadas del refugio ${vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length}/${G.cantidad}`, deposito: `Bidones en el generador ${A.bidon}/${G.cantidad}`, suministros: `Suministros ${A.suministro}/${G.cantidad}`,
     cero: `Losetas de borde ${G.losetasBorde.filter(l => G.casillas[l].revelada).length}/8`, protocolo: `Muestras ${A.muestras}/3` }[M.objetivo] || '';
 }
 function cabecera(root) {

@@ -4,7 +4,7 @@ export const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 4, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 1,
 };
 
 export const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];
@@ -34,7 +34,7 @@ export const OBJETOS = {
   moto:         { nombre: 'Moto (sin gasolina)', tipo: 'vehiculo', peso: 0, clase: 'moto' },
   coche:        { nombre: 'Coche (sin gasolina)', tipo: 'vehiculo', peso: 0, clase: 'coche' },
   moto_dep:     { nombre: 'Moto con depósito', tipo: 'vehiculo', peso: 0, clase: 'moto', porGas: 2, ruido: 1, gasMax: 3, plazas: 1 },
-  coche_dep:    { nombre: 'Coche con depósito', tipo: 'vehiculo', peso: 0, clase: 'coche', porGas: 1, ruido: 2, gasMax: 4, capacidad: 6, atropella: true, plazas: 3 },
+  coche_dep:    { nombre: 'Coche con depósito', tipo: 'vehiculo', peso: 0, clase: 'coche', porGas: 1, ruido: 2, gasMax: 6, capacidad: 6, atropella: true, plazas: 3 },
   bidon:        { nombre: 'Bidón de gasolina', tipo: 'combustible', peso: 2 },
   radio:        { nombre: 'Radio', tipo: 'otro', peso: 1 },
   poncho:       { nombre: 'Poncho', tipo: 'otro', peso: 1 },
@@ -54,7 +54,7 @@ export const OBJETOS = {
 
 // Composición del mazo de objetos. La comida sube a 12 para que Invierno sea posible sin Omar.
 export const MAZO_OBJETOS = {
-  cinta: 5, clavos: 5, pilas: 5, trapo: 4, botella: 4, tubo: 3, tablas: 3, chapa: 2, walkie: 3,
+  cinta: 5, clavos: 5, pilas: 5, trapo: 4, botella: 4, tubo: 3, tablas: 4, chapa: 3, walkie: 3,
   bate: 3, machete: 2, pistola: 3, rifle: 1,
   botiquin: 5, antibioticos: 4, comida: 12,
   moto: 2, coche: 2, bidon: 3, radio: 2, poncho: 2, receta: 4,
@@ -132,43 +132,45 @@ export const PERSONAJES = {
 };
 
 // contagio: cuenta_atras | sin_contagio | hardcore | ambos (hardcore y sin contagio a la vez)
+// cantidades: objetivo según jugadores, por tramos (hasta 3, hasta 6, hasta 10). kit: cartas que se reparten al empezar; un array interno va entero a un mismo jugador.
+export function cantidadObjetivo(M, n) { if (!M.cantidades) return M.cantidad; return n <= 3 ? M.cantidades[3] : n <= 6 ? M.cantidades[6] : M.cantidades[10]; }
 export const MISIONES = {
   farmacia: { nombre: 'Farmacia Central', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Traed 3 antibióticos al refugio. Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
-    objetivo: 'antibioticos_refugio', cantidad: 3, farmacias: 2 },
+    texto: 'Traed antibióticos al refugio (2, 3 o 4 según el tamaño del grupo). Hay 2 farmacias garantizadas en bordes opuestos. Un mordisco da 4 turnos para curarlo.',
+    objetivo: 'antibioticos_refugio', cantidades: { 3: 2, 6: 3, 10: 4 }, farmacias: 2, kit: ['botiquin'] },
   sin_gota: { nombre: 'Sin una gota', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 10,
     texto: 'Llegad todos vivos al helipuerto antes de la ronda 10. Un mordisco que no se anule en la misma ronda hace fracasar la misión.',
-    objetivo: 'todos_helipuerto', especial: 'helipuerto' },
+    objetivo: 'todos_helipuerto', especial: 'helipuerto', kit: ['antibioticos'] },
   granja:   { nombre: 'La granja', etiquetas: ['HC', 'R'], contagio: 'hardcore', rondas: 12,
-    texto: 'Conseguid las semillas (llegan por evento) y 2 bidones, dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
-    objetivo: 'granja', semillas: true },
+    texto: 'Conseguid las semillas (llegan por evento) y bidones (1 o 2 según el grupo), dejadlos en el refugio y aguantad hasta la ronda 12 con al menos la mitad del equipo.',
+    objetivo: 'granja', semillas: true, cantidades: { 3: 1, 6: 2, 10: 2 }, kit: ['bidon'] },
   emisora:  { nombre: 'La emisora', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Craftead un Señuelo, llevadlo a la torre de radio y mantened a un superviviente allí con el señuelo sonando 2 noches.',
-    objetivo: 'torre', especial: 'torre', cantidad: 2 },
+    texto: 'Craftead un Señuelo, llevadlo a la torre de radio y mantened a un superviviente allí con el señuelo sonando 2 noches. Empezáis con una radio y pilas.',
+    objetivo: 'torre', especial: 'torre', cantidad: 2, kit: [['radio', 'pilas']] },
   convoy:   { nombre: 'El convoy', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 9,
-    texto: 'Craftead vehículos con depósito y sacad a 6 supervivientes (o a todos si sois menos) por cualquier borde del mapa, a bordo.',
-    objetivo: 'convoy', cantidad: 6 },
+    texto: 'Craftead vehículos con depósito y sacad de la ciudad a bordo a 2, 4 o 6 supervivientes según el tamaño del grupo. Empezáis con un coche, una moto y un bidón.',
+    objetivo: 'convoy', cantidades: { 3: 2, 6: 4, 10: 6 }, kit: [['coche', 'bidon'], ['moto', 'bidon']] },
   cuarentena: { nombre: 'Cuarentena', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 8,
-    texto: 'Levantad barricadas en las 6 aristas del refugio antes de la ronda 8 sin un solo contagio.',
-    objetivo: 'cuarentena', cantidad: 6 },
+    texto: 'Levantad barricadas en las aristas del refugio (3, 4 o 6 según el tamaño del grupo) antes de la ronda 8 sin un solo contagio. Empezáis con materiales para dos.',
+    objetivo: 'cuarentena', cantidades: { 3: 3, 6: 4, 10: 6 }, kit: [['tablas', 'chapa', 'clavos'], ['tablas', 'chapa', 'clavos'], 'antibioticos'] },
   invierno: { nombre: 'Invierno', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 10,
-    texto: 'Acumulad 10 cartas de comida en el refugio antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
-    objetivo: 'comida_refugio', cantidad: 10 },
+    texto: 'Acumulad comida en el refugio (4, 6 o 10 raciones según el tamaño del grupo) antes de la ronda 10. Un mordisco convierte al terminar la ronda.',
+    objetivo: 'comida_refugio', cantidades: { 3: 4, 6: 6, 10: 10 }, kit: ['comida', 'comida'] },
   deposito: { nombre: 'El depósito', etiquetas: ['R'], contagio: 'cuenta_atras', rondas: 12,
-    texto: 'Llevad 4 bidones de gasolina al generador del norte.',
-    objetivo: 'deposito', especial: 'generador', cantidad: 4 },
+    texto: 'Llevad los bidones de gasolina al generador del norte (2, 3 o 4 según el tamaño del grupo).',
+    objetivo: 'deposito', especial: 'generador', cantidades: { 3: 2, 6: 3, 10: 4 }, kit: ['bidon'] },
   ultima:   { nombre: 'Última llamada', etiquetas: ['HC', 'T'], contagio: 'hardcore', rondas: 12,
     texto: 'Sobrevivid 12 rondas con al menos la mitad del equipo. Desde la ronda 6, cada dos noches llega una carta de horda extra.',
     objetivo: 'sobrevivir', hordaDesde: 6 },
-  suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 10,
-    texto: 'Recoged los 5 suministros marcados, repartidos por las losetas de borde.',
-    objetivo: 'suministros', cantidad: 5, suministros: 5 },
+  suministros: { nombre: 'Los suministros del puente', etiquetas: ['R', 'T'], contagio: 'cuenta_atras', rondas: 12,
+    texto: 'Recoged los suministros marcados de las losetas de borde (3, 4 o 5 según el tamaño del grupo).',
+    objetivo: 'suministros', cantidades: { 3: 3, 6: 4, 10: 5 }, suministros: 5, kit: [['moto', 'bidon']] },
   cero:     { nombre: 'Cero contagios', etiquetas: ['SC', 'T'], contagio: 'sin_contagio', rondas: 12,
     texto: 'Revelad las 8 losetas de borde con entrada de horda sin un solo contagio.',
-    objetivo: 'cero' },
+    objetivo: 'cero', kit: ['antibioticos', 'antibioticos'] },
   protocolo: { nombre: 'Protocolo Z-2099', etiquetas: ['HC', 'SC', 'T'], contagio: 'ambos', rondas: 12,
-    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión.',
-    objetivo: 'protocolo', especial: 'laboratorio', muestras: true },
+    texto: 'Recoged una muestra de caminante, de corredor y de acorazado (al matarlos) y llevadlas al laboratorio. Un mordisco convierte y además hace fracasar la misión. Empezáis con un rifle y un silenciador.',
+    objetivo: 'protocolo', especial: 'laboratorio', muestras: true, kit: [['rifle', 'silenciador']] },
 };
 
 export const EVENTOS = [

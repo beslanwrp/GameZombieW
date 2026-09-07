@@ -160,7 +160,7 @@
     "clase": "coche",
     "porGas": 1,
     "ruido": 2,
-    "gasMax": 4,
+    "gasMax": 6,
     "capacidad": 6,
     "atropella": true,
     "plazas": 3

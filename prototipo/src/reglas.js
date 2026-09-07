@@ -1,6 +1,6 @@
 // Z-2099 · motor de reglas del prototipo M0 (v0.2). Sin dependencias de interfaz.
 // El estado G es un objeto JSON serializable. Las funciones lo mutan y devuelven {ok, motivo, ...}.
-import { PARAMS, CARAS, OBJETOS, MAZO_OBJETOS, RECETAS, ZOMBIS, MAZO_ZOMBIS, PERSONAJES, MISIONES, EVENTOS, HORDAS, escalado } from './datos.js';
+import { PARAMS, CARAS, OBJETOS, MAZO_OBJETOS, RECETAS, ZOMBIS, MAZO_ZOMBIS, PERSONAJES, MISIONES, EVENTOS, HORDAS, escalado, cantidadObjetivo } from './datos.js';
 
 /* ---------- azar determinista ---------- */
 export function rnd(G) { let a = (G.semilla | 0) + 0x6D2B79F5 | 0; G.semilla = a; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
@@ -41,10 +41,10 @@ export const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
   const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
-    recetasConocidas: Object.keys(RECETAS).filter(r => RECETAS[r].inicial), almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
+    recetasConocidas: [...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
   const esc = escalado(jugadores.length); G.escalado = esc; G.ruido = esc.ruidoInicial;
-  const M = MISIONES[misionId];
+  const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length);
   jugadores.forEach((j, i) => {
     const p = PERSONAJES[j.personajeId];
     const jug = { id: i, nombre: j.nombre, personajeId: j.personajeId, pos: '0,0', vida: p.vida, vidaMax: p.vida, panico: 0, mordido: null, estado: 'vivo',
@@ -52,6 +52,7 @@ export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
     p.inicial.forEach(id => jug.mano.push(carta(G, id)));
     G.jugadores.push(jug);
   });
+  (M.kit || []).forEach((entrada, i) => { const ids = Array.isArray(entrada) ? entrada : [entrada]; let j = G.jugadores[i % G.jugadores.length]; if (ids.some(id => OBJETOS[id].fuego || OBJETOS[id].clase) && (j.personajeId === 'ruy')) j = G.jugadores[(i + 1) % G.jugadores.length]; ids.forEach(id => j.mano.push(carta(G, id))); });
   for (const [id, n] of Object.entries(MAZO_OBJETOS)) for (let i = 0; i < n; i++) G.mazoObjetos.push(id);
   barajar(G, G.mazoObjetos);
   G.mazoHordas = barajar(G, HORDAS.map((h, i) => i));
@@ -443,7 +444,7 @@ function nocheB(G) {
   for (const c of Object.values(G.casillas)) { if (c.fuego) c.fuego--; if (c.senuelo) c.senuelo--; }
   for (const j of G.jugadores) if (j.camuflaje) j.camuflaje--;
   G.enlaces = G.enlaces.map(e => ({ ...e, rondas: e.rondas - 1 })).filter(e => e.rondas > 0);
-  if (M.objetivo === 'torre') { const t = G.casillas[G.especiales.torre]; if (t && (t.senuelo > 0 || jugadoresEn(G, t.k).some(j => j.mano.some(c => c.id === 'senuelo'))) && jugadoresEn(G, t.k).some(j => j.estado === 'vivo')) { G.progreso++; log(G, `La emisora transmite (${G.progreso}/${M.cantidad}).`, 'bien'); } }
+  if (M.objetivo === 'torre') { const t = G.casillas[G.especiales.torre]; if (t && (t.senuelo > 0 || jugadoresEn(G, t.k).some(j => j.mano.some(c => c.id === 'senuelo'))) && jugadoresEn(G, t.k).some(j => j.estado === 'vivo')) { G.progreso++; log(G, `La emisora transmite (${G.progreso}/${G.cantidad}).`, 'bien'); } }
   G.niebla = !!G.banderas.nieblaProxima; G.banderas.nieblaProxima = false;
   if (!G.banderas.primeraHorda && Object.values(G.zombis).some(esHorda)) G.banderas.primeraHorda = G.ronda;
   comprobarFin(G, true); if (G.fin) return;
@@ -488,21 +489,21 @@ export function comprobarFin(G, finRonda = false) {
   if (perdidos >= umbral) G.fin = { resultado: 'derrota', motivo: G.jugadores.some(j => j.estado === 'zombi') ? 'El bando zombi ha alcanzado a la mitad del equipo.' : 'No queda nadie en pie.' };
   const salidos = G.jugadores.filter(j => j.estado === 'salido').length; const enPie = vivos(G).length + salidos;
   if (!G.fin) {
-    if (M.objetivo === 'convoy' && salidos >= Math.min(M.cantidad, N)) G.fin = { resultado: 'victoria', motivo: `${salidos} supervivientes salen de la ciudad en el convoy.` };
-    if (M.objetivo === 'cuarentena' && vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'El refugio queda sellado. Cuarentena completa.' };
-    if (M.objetivo === 'suministros' && G.almacen.suministro >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'Los cinco suministros del puente están a salvo.' };
+    if (M.objetivo === 'convoy' && salidos >= Math.min(G.cantidad, N)) G.fin = { resultado: 'victoria', motivo: `${salidos} supervivientes salen de la ciudad en el convoy.` };
+    if (M.objetivo === 'cuarentena' && vecinos('0,0').filter(v => hayBarricada(G, '0,0', v)).length >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'El refugio queda sellado. Cuarentena completa.' };
+    if (M.objetivo === 'suministros' && G.almacen.suministro >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'Los cinco suministros del puente están a salvo.' };
     if (M.objetivo === 'cero' && G.losetasBorde.every(l => G.casillas[l].revelada)) G.fin = { resultado: 'victoria', motivo: 'Las ocho losetas de borde exploradas sin un solo contagio.' };
   }
   if (!G.fin && finRonda) {
-    if (M.objetivo === 'antibioticos_refugio' && G.almacen.antibioticos >= M.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.antibioticos} antibióticos en el refugio.` };
-    if (M.objetivo === 'comida_refugio' && G.almacen.comida >= M.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.comida} raciones almacenadas. El invierno puede venir.` };
-    if (M.objetivo === 'deposito' && G.almacen.bidon >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'El generador ruge. Hay luz en el refugio.' };
+    if (M.objetivo === 'antibioticos_refugio' && G.almacen.antibioticos >= G.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.antibioticos} antibióticos en el refugio.` };
+    if (M.objetivo === 'comida_refugio' && G.almacen.comida >= G.cantidad) G.fin = { resultado: 'victoria', motivo: `${G.almacen.comida} raciones almacenadas. El invierno puede venir.` };
+    if (M.objetivo === 'deposito' && G.almacen.bidon >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'El generador ruge. Hay luz en el refugio.' };
     if (M.objetivo === 'protocolo' && G.almacen.muestras >= 3) G.fin = { resultado: 'victoria', motivo: 'Las tres muestras llegan al laboratorio. El protocolo Z-2099 se activa.' };
-    if (M.objetivo === 'torre' && G.progreso >= M.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
+    if (M.objetivo === 'torre' && G.progreso >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
     if (M.objetivo === 'todos_helipuerto') { const v = vivos(G); if (v.length && v.every(j => j.pos === G.especiales.helipuerto && j.estado === 'vivo')) G.fin = { resultado: 'victoria', motivo: 'Todo el equipo despega sin una gota de sangre infectada.' }; }
     if (!G.fin && G.ronda >= M.rondas) {
       if (M.objetivo === 'sobrevivir') G.fin = enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${enPie} de ${N} responden a la última llamada.` } : { resultado: 'derrota', motivo: 'Demasiados caídos cuando llegó la última llamada.' };
-      else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= 2 && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
+      else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= G.cantidad && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
       else G.fin = { resultado: 'derrota', motivo: 'Se agotaron las rondas.' };
     }
   }
