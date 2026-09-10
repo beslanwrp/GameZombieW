@@ -1,6 +1,6 @@
 # Z-2099 · prototipo M0 de reglas
 
-Prototipo jugable en el navegador para probar las reglas del documento de diseño con un grupo real antes de invertir en arte. Sin 3D: tablero hexagonal plano, dados, cartas, contagio y jugador zombi. Versión 0.4. El informe de partidas simuladas a 2 y 4 jugadores está en `07-informe-partidas-simuladas.md`.
+MVP jugable en el navegador para probar el juego con un grupo real antes de invertir en arte final. Tablero **3D con cámara libre** (Three.js, WebGL) con escenografía procedural y fichas estilizadas sin modelado de personajes, **mapa grande** de unas 250 casillas, interfaz en el estilo de las maquetas (expedientes y polaroids), multijugador con un móvil por jugador y pantalla compartida. Versión 0.6. Si el móvil no tiene WebGL, el tablero cae a la vista 2D plana. El informe de partidas simuladas a 2 y 4 jugadores está en `07-informe-partidas-simuladas.md`.
 
 ## Cómo probarlo
 
@@ -22,6 +22,15 @@ El servidor es el anfitrión: aplica las reglas y envía a cada móvil solo lo q
 ## Qué hay implementado
 
 Todo lo descrito en las secciones 5 a 15 del documento de diseño: tablero octogonal de unas 120 casillas en losetas de 7 que se revelan al entrar, entradas de horda, refugio, gasolineras, farmacias, talleres, bosque y las casillas especiales de cada misión (helipuerto, torre, generador, laboratorio, suministros). Dados personalizados para mover y combatir. Turnos por iniciativa con 1 movimiento y 2 acciones: saquear, atacar, craftear, curar, amputar, dar cartas (también por enlace), levantar, conducir, subir de pasajero, salir de la ciudad, descansar. Peso e inventario. Ruido con tope escalado, cartas de horda, eventos en rondas pares con la decisión de Instinto de Beatriz. Cuatro tipos de zombi, hordas, barricadas. Contagio según misión (cuenta atrás, sin contagio, hardcore y ambos), conversión y jugador zombi con mover horda, mover ficha, atacar, oler, ocultarse, reclutar y evolución. Las 10 recetas. Las habilidades de los 12 personajes.
+
+## Tablero 3D y mapa grande
+
+- **Cámara libre**: un dedo orbita, dos dedos hacen zoom y desplazan, doble toque centra una casilla. Botones «Ver todo», «Mi ficha» y «Vista de mesa» (preajuste isométrico). Elevación limitada entre 20° y 80°.
+- **Escenografía procedural**: edificios, bosques, gasolinera, farmacia, taller, refugio, entradas de horda, helipuerto, torre, generador y laboratorio como volúmenes simples; fuego animado, señuelo pulsante, barricadas en las aristas, cajas para objetos y suministros. Losetas ocultas en oscuro.
+- **Fichas**: supervivientes como peones con el color del personaje, anillo blanco pulsante en el que actúa, punto rojo si está mordido, tumbado si ha caído; zombis como peones verdes inclinados, las hordas como grupos con contador. Etiquetas en espacio de pantalla siempre legibles.
+- **Iluminación**: sol bajo cálido de atardecer, relleno frío, niebla lejana. Sin sombras dinámicas para rendimiento en móvil.
+- **Mapa grande** (por defecto): radio 9, unas 250 casillas, 3 rondas más por misión. El mapa medio (radio 6, 120 casillas) sigue disponible en las opciones y es el que usa el simulador.
+- Referencias visuales: la paleta y los materiales están en `prototipo/src/tablero3d.js` (`COL`, luces) y en `prototipo/plantilla.html`. Para cambiar la dirección de arte a partir de referencias, esos dos archivos son los que hay que tocar.
 
 ## Simplificaciones respecto al documento
 
@@ -130,7 +139,9 @@ Los bots no coordinan, usan mal los vehículos y casi nunca curan: estas cifras 
 | --- | --- |
 | `prototipo/src/datos.js` | Parámetros, cartas, recetas, zombis, personajes, misiones, eventos, hordas, escalado |
 | `prototipo/src/reglas.js` | Motor de reglas puro, sin interfaz, estado serializable |
-| `prototipo/src/ui.js` | Interfaz móvil con Canvas y modo «pasar el móvil» |
+| `prototipo/src/tablero3d.js` | Tablero 3D con Three.js: escena, escenografía, fichas, resaltes, cámara y gestos |
+| `prototipo/vendor/three.min.js` | Three.js r150 (licencia MIT), incrustado en el HTML al construir |
+| `prototipo/src/ui.js` | Interfaz móvil, modo «pasar el móvil», vista 2D de respaldo |
 | `prototipo/src/red.js` | Capa de red del cliente: sala, reparto, espera, pantalla compartida |
 | `prototipo/servidor.mjs` | Servidor de partida sin dependencias: `node prototipo/servidor.mjs [puerto]` |
 | `prototipo/sim.mjs` | Simulador de equilibrio: `node prototipo/sim.mjs 40 todas 4,6,10`. También exporta `jugar()` para grabar trazas |

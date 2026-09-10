@@ -48,7 +48,7 @@ const servidor = createServer(async (req, res) => {
   if (ruta === '/api/ping') return json(res, 200, { ok: true, servidor: 'z2099', salas: salas.size });
   if (req.method === 'POST' && ruta === '/api/sala') {
     const b = await cuerpo(req); const codigo = nuevoCodigo(); const token = nuevoToken();
-    const sala = { codigo, creada: Date.now(), fase: 'sala', misionId: b.misionId && MISIONES[b.misionId] ? b.misionId : Object.keys(MISIONES)[Math.floor(Math.random() * 12)], opciones: { hardcoreTardio: !!(b.opciones && b.opciones.hardcoreTardio) }, asientos: [{ asiento: 0, nombre: String(b.nombre || 'Anfitrión').slice(0, 14), token, clientes: new Set() }], espectadores: [], G: null };
+    const sala = { codigo, creada: Date.now(), fase: 'sala', misionId: b.misionId && MISIONES[b.misionId] ? b.misionId : Object.keys(MISIONES)[Math.floor(Math.random() * 12)], opciones: { hardcoreTardio: !!(b.opciones && b.opciones.hardcoreTardio), mapa: b.opciones && b.opciones.mapa === 'medio' ? 'medio' : 'grande' }, asientos: [{ asiento: 0, nombre: String(b.nombre || 'Anfitrión').slice(0, 14), token, clientes: new Set() }], espectadores: [], G: null };
     salas.set(codigo, sala); return json(res, 200, { ok: true, codigo, token, asiento: 0 });
   }
   const m = ruta.match(/^\/api\/sala\/([A-Z]{4})\/(\w+)$/); if (!m) return json(res, 404, { ok: false, motivo: 'Ruta desconocida' });
@@ -67,7 +67,7 @@ const servidor = createServer(async (req, res) => {
     const token = nuevoToken(); const asiento = sala.asientos.length; sala.asientos.push({ asiento, nombre: String(b.nombre || 'Jugador ' + (asiento + 1)).slice(0, 14), token, clientes: new Set() }); difundir(sala); return json(res, 200, { ok: true, codigo: sala.codigo, token, asiento });
   }
   const q = buscar(sala, b.token); if (!q) return json(res, 403, { ok: false, motivo: 'Token no válido' });
-  if (op === 'configurar') { if (q.asiento !== 0) return json(res, 403, { ok: false, motivo: 'Solo el anfitrión' }); if (sala.fase !== 'sala') return json(res, 409, { ok: false, motivo: 'Ya ha empezado' }); if (b.misionId && MISIONES[b.misionId]) sala.misionId = b.misionId; if (b.opciones) sala.opciones = { hardcoreTardio: !!b.opciones.hardcoreTardio }; difundir(sala); return json(res, 200, { ok: true }); }
+  if (op === 'configurar') { if (q.asiento !== 0) return json(res, 403, { ok: false, motivo: 'Solo el anfitrión' }); if (sala.fase !== 'sala') return json(res, 409, { ok: false, motivo: 'Ya ha empezado' }); if (b.misionId && MISIONES[b.misionId]) sala.misionId = b.misionId; if (b.opciones) sala.opciones = { hardcoreTardio: !!b.opciones.hardcoreTardio, mapa: b.opciones.mapa === 'medio' ? 'medio' : 'grande' }; difundir(sala); return json(res, 200, { ok: true }); }
   if (op === 'empezar') {
     if (q.asiento !== 0) return json(res, 403, { ok: false, motivo: 'Solo el anfitrión' }); if (sala.fase !== 'sala') return json(res, 409, { ok: false, motivo: 'Ya ha empezado' }); if (sala.asientos.length < 2) return json(res, 409, { ok: false, motivo: 'Hacen falta al menos 2 jugadores' });
     const pool = Object.keys(PERSONAJES).sort(() => Math.random() - .5); sala.asientos.forEach((a, i) => { a.oferta = [pool[(2 * i) % pool.length], pool[(2 * i + 1) % pool.length]]; a.personajeId = null; });

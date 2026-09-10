@@ -4,7 +4,7 @@ export const PARAMS = {
   accionesPorRonda: 2, dadosBase: 2, capacidadBase: 6, vidaBase: 3,
   ruidoInicial: 2, ruidoTope: 8, ruidoTrasHorda: 4, ruidoPorNoche: 1,
   turnosContagio: 4, tratamientoTurnos: 2, saqueosPorCasilla: 2,
-  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 2, recetasExtraInicio: 1,
+  distanciaDisparo: 3, gasolinaMoto: 3, gasolinaCoche: 6, radioMapa: 6, radioMapaGrande: 9, rondasExtraMapaGrande: 3, rondasEnlace: 4, percepcion: 4, impactosPorCaminanteHorda: 2, ruidoTopeBase: 10, ruidoTrasHordaResta: 7, dadosDefensa: 2, recetasExtraInicio: 1,
 };
 
 export const CARAS = ['paso', 'paso', 'paso', 'doble', 'ruido', 'mordisco'];

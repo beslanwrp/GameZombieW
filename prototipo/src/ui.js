@@ -15,7 +15,7 @@ function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ G, UI: {
 function cargar() { try { const d = JSON.parse(localStorage.getItem(CLAVE)); if (d && d.G && d.G.version === 2) { G = d.G; Object.assign(UI, d.UI); return true; } } catch (e) { } return false; }
 
 /* ---------- pantallas y modales ---------- */
-function mostrar(id) { UI.pantalla = id; document.querySelectorAll('.pantalla').forEach(p => p.hidden = p.id !== 'p-' + id); if (id === 'juego' || id === 'zombi' || id === 'espera') requestAnimationFrame(() => { ajustarCanvas(); dibujar(); }); }
+function mostrar(id) { UI.pantalla = id; document.querySelectorAll('.pantalla').forEach(p => p.hidden = p.id !== 'p-' + id); if (id === 'juego' || id === 'zombi' || id === 'espera') requestAnimationFrame(() => { if (T3D.activo()) { T3D.montarEn($('#p-' + id + ' .tablero')); dibujar(); } else { ajustarCanvas(); dibujar(); } }); }
 function modal(titulo, cuerpo, botones = [['Cerrar', null]], clase = '') {
   const m = $('#modal'); m.className = 'modal ' + clase; m.hidden = false; $('#modal-titulo').textContent = titulo; const b = $('#modal-cuerpo'); b.innerHTML = ''; if (typeof cuerpo === 'string') b.innerHTML = cuerpo; else b.append(cuerpo);
   const bb = $('#modal-botones'); bb.innerHTML = ''; botones.forEach(([t, f, c]) => bb.append(el('button', { class: c || '', onclick: () => { m.hidden = true; f && f(); } }, t)));
@@ -36,17 +36,18 @@ function inicio() {
   n.addEventListener('change', pintaNombres); pintaNombres();
   const mis = el('select', {}, el('option', { value: '' }, 'Misión al azar'), ...Object.entries(MISIONES).map(([id, m]) => el('option', { value: id }, `${m.nombre} · ${m.etiquetas.join(' ')} · ${m.rondas} rondas`)));
   const hc = el('select', {}, el('option', { value: '' }, 'Conversión al terminar la ronda (documento v1.0)'), el('option', { value: '1' }, 'Conversión en la noche siguiente (propuesta del simulador)'));
-  cont.append(el('label', {}, 'Jugadores', n), nombres, el('label', {}, 'Misión', mis), el('label', {}, 'Variante hardcore', hc), el('button', { class: 'mini', onclick: verReglas }, 'Hoja de reglas'),
+  const mapa = el('select', {}, el('option', { value: 'grande' }, 'Mapa grande (unas 250 casillas, +3 rondas)'), el('option', { value: 'medio' }, 'Mapa medio (unas 120 casillas)'));
+  cont.append(el('label', {}, 'Jugadores', n), nombres, el('label', {}, 'Misión', mis), el('label', {}, 'Variante hardcore', hc), el('label', {}, 'Tamaño del mapa', mapa), el('button', { class: 'mini', onclick: verReglas }, 'Hoja de reglas'),
     el('button', { class: 'primario ancho', onclick: () => {
       const ids = Object.keys(MISIONES); const misionId = mis.value || ids[Math.floor(Math.random() * ids.length)];
       const js = [...nombres.querySelectorAll('input')].map((inp, i) => ({ nombre: inp.value.trim() || 'Jugador ' + (i + 1) }));
-      UI.reparto = { jugadores: js, misionId, idx: 0, semilla: Math.floor(Math.random() * 1e9), opciones: { hardcoreTardio: hc.value === '1' } }; guardar(); reparto();
+      UI.reparto = { jugadores: js, misionId, idx: 0, semilla: Math.floor(Math.random() * 1e9), opciones: { hardcoreTardio: hc.value === '1', mapa: mapa.value } }; guardar(); reparto();
     } }, 'Empezar'));
   mostrar('inicio'); redInicio(cont);
 }
 function reparto() {
   const Rp = UI.reparto;
-  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla, opciones: Rp.opciones || {} }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; UI.inicio = Date.now(); guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${MISIONES[G.misionId].rondas} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
+  if (Rp.idx >= Rp.jugadores.length) { G = nuevaPartida({ jugadores: Rp.jugadores, misionId: Rp.misionId, semilla: Rp.semilla, opciones: Rp.opciones || {} }); UI.reparto = null; UI.mostrado = null; UI.cam.ajustada = false; UI.inicio = Date.now(); guardar(); modal('Misión: ' + MISIONES[G.misionId].nombre, `<p>${MISIONES[G.misionId].texto}</p><p class="muted">Contagio: ${etiquetaContagio(G.misionId)}. Límite: ${G.rondasMax} rondas.</p>`, [['A la mesa', () => reanudar()]]); return; }
   const j = Rp.jugadores[Rp.idx]; const usados = Rp.jugadores.filter(x => x.personajeId).map(x => x.personajeId); const libres = Object.keys(PERSONAJES).filter(p => !usados.includes(p)).sort(() => Math.random() - .5);
   const oferta = libres.slice(0, 2);
   pasar(j.nombre, null, () => {
@@ -83,7 +84,7 @@ function textoObjetivo() {
 function cabecera(root) {
   const M = MISIONES[G.misionId]; const h = root.querySelector('.cabecera'); h.innerHTML = '';
   const ruido = el('div', { class: 'ruido' + (G.ruido >= 6 ? ' alto' : ''), title: 'Ruido' }, el('span', { class: 'lab' }, 'Ruido'), el('div', { class: 'ruido-bar' }, ...Array.from({ length: G.escalado.ruidoTope }, (_, i) => el('i', { class: i < G.ruido ? 'on' : '' }))), el('b', {}, `${G.ruido}/${G.escalado.ruidoTope}`));
-  h.append(el('div', { class: 'mision' }, el('b', {}, M.nombre), el('span', {}, ` · Ronda ${G.ronda}/${M.rondas} · ${textoObjetivo()}`)), ruido, el('button', { class: 'mini', onclick: verLog }, 'Registro'), el('button', { class: 'mini', onclick: verReglas }, 'Reglas'));
+  h.append(el('div', { class: 'mision' }, el('b', {}, M.nombre), el('span', {}, ` · Ronda ${G.ronda}/${G.rondasMax} · ${textoObjetivo()}`)), ruido, el('button', { class: 'mini', onclick: verLog }, 'Registro'), el('button', { class: 'mini', onclick: verReglas }, 'Reglas'));
 }
 const REGLAS = `
 <h4>La ronda</h4><p>Por orden de iniciativa, cada superviviente tira sus dados y tiene <b>1 movimiento y 2 acciones</b>. Después se mueven los zombis y el jugador zombi. Al caer la noche el ruido sube 1, si llega al tope entra una carta de horda, en rondas pares hay evento, el refugio cura 1 y avanzan los contagios.</p>
@@ -196,8 +197,22 @@ function encuadrar() { const cv = canvas(); if (!cv || !G) return; let minx = 1e
 const COL = { calle: '#4a4d47', edificio: '#6a6152', bosque: '#3f4d33', gasolinera: '#7a5a2e', farmacia: '#6e4a4a', taller: '#5b5a6a', refugio: '#7a3a2a', entrada: '#5a2d2d', helipuerto: '#3d5a6a', torre: '#3d5a6a', laboratorio: '#4a3d6a', generador: '#6a5a2a', oculta: '#22241f' };
 const ICON = { gasolinera: '⛽', farmacia: '✚', taller: '🔧', refugio: '⌂', helipuerto: 'H', entrada: '↯', bosque: '♣', edificio: '▪', torre: '📡', laboratorio: '⚗', generador: '⚡' };
 function hexPath(ctx, x, y, s) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const px = x + s * Math.cos(a), py = y + s * Math.sin(a); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.closePath(); }
+function colorJugador(j) { return PERSONAJES[j.personajeId].color; }
 function dibujar() {
-  const cv = canvas(); if (!cv || !G) return; const ctx = cv.getContext('2d'); const { s, x: ox, y: oy } = UI.cam; ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!G) return;
+  if (T3D.activo()) {
+    const actual = G.fase === 'turno' ? turnoActual(G) : null; let destinos = [], colorDestinos = 0x9db060, objetivos = [];
+    if (G.fase === 'turno' && UI.modo === 'mover') { destinos = destinosPosibles(G); objetivos = objetivosAtaque(G).map(o => o.z.pos); }
+    if (G.fase === 'turno' && (UI.modo === 'molotov' || UI.modo === 'barricada')) { destinos = vecinos(actual.pos).filter(k => G.casillas[k]); colorDestinos = 0xe0b43a; }
+    if (G.fase === 'turno' && UI.modo === 'rastreo') { destinos = vecinos(actual.pos).filter(k => G.casillas[k] && !G.casillas[k].revelada); colorDestinos = 0xe0b43a; }
+    const zf = G.fase === 'zombi' ? fichaZombi(G, G.zturno.jugadorId) : null;
+    if (zf && UI.modo === 'zmover') { destinos = vecinos(zf.pos).filter(k => G.casillas[k] && !G.casillas[k].fuego); colorDestinos = 0xc9553d; }
+    if (UI.modo === 'zhorda_dest' && UI.zSel && G.zombis[UI.zSel]) { destinos = vecinos(G.zombis[UI.zSel].pos).filter(k => G.casillas[k] && !G.casillas[k].fuego); colorDestinos = 0xc9553d; }
+    const verOculto = G.fase === 'zombi' && (!RED.activa || RED.asiento === G.zturno.jugadorId);
+    T3D.actualizar(G, { destinos, colorDestinos, objetivos, actual: actual ? actual.id : null, seleccion: UI.modo === 'zhorda_dest' && UI.zSel && G.zombis[UI.zSel] ? G.zombis[UI.zSel].pos : null, verOculto, colores: G.jugadores.map(colorJugador) });
+    return;
+  }
+  const cv = canvas(); if (!cv) return; const ctx = cv.getContext('2d'); const { s, x: ox, y: oy } = UI.cam; ctx.clearRect(0, 0, cv.width, cv.height);
   const actual = G.fase === 'turno' ? turnoActual(G) : null; const dest = G.fase === 'turno' && UI.modo === 'mover' ? new Set(destinosPosibles(G)) : new Set();
   if (G.fase === 'turno' && (UI.modo === 'molotov' || UI.modo === 'barricada')) vecinos(actual.pos).forEach(k => G.casillas[k] && dest.add(k));
   const zf = G.fase === 'zombi' ? fichaZombi(G, G.zturno.jugadorId) : null;
@@ -267,6 +282,9 @@ function zoom(k, cx, cy, cv) { const r = cv.getBoundingClientRect(); const dpr =
 /* ---------- arranque ---------- */
 window.addEventListener('resize', () => { UI.cam.ajustada = false; ajustarCanvas(); dibujar(); });
 document.querySelectorAll('canvas').forEach(gestos);
-document.querySelectorAll('.encuadrar').forEach(b => b.addEventListener('click', () => { encuadrar(); dibujar(); }));
+document.querySelectorAll('.encuadrar').forEach(b => b.addEventListener('click', () => { if (T3D.activo()) T3D.encuadrar(); else { encuadrar(); dibujar(); } }));
+document.querySelectorAll('.mificha').forEach(b => b.addEventListener('click', () => { if (!G) return; const j = RED.activa && RED.asiento >= 0 ? G.jugadores[RED.asiento] : (G.fase === 'turno' ? turnoActual(G) : null); if (j && T3D.activo()) T3D.centrarEn(j.pos); }));
+document.querySelectorAll('.vistamesa').forEach(b => b.addEventListener('click', () => { if (T3D.activo()) T3D.vistaMesa(); }));
+if (T3D.iniciar()) { T3D.onTocar(k => tocar(k)); document.querySelectorAll('.tablero canvas').forEach(c => c.hidden = true); }
 $('#modal-fondo').addEventListener('click', e => { if (e.target.id === 'modal-fondo') cerrarModal(); });
 if (!redReanudar()) { if (cargar()) reanudar(); else inicio(); }

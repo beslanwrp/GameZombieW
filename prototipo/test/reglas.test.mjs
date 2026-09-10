@@ -145,3 +145,10 @@ test('la defensa base son 2 dados y Beatriz tira 3', () => {
   const G = partida(6, 'farmacia', 2); const bea = G.jugadores.find(x => x.personajeId === 'beatriz'); const z = R.ponerZombi(G, 'caminante', 1, bea.pos); const antes = G.semilla; R.zombiAtaca(G, z, bea); assert.ok(G.log.at(-1).texto.split(',').length >= 3 || /muerde/.test(G.log.at(-1).texto));
   void antes;
 });
+
+test('mapa grande: unas 250 casillas, 8 entradas, garantías y 3 rondas más', () => {
+  const G = R.nuevaPartida({ jugadores: seis.slice(0, 4).map((p, i) => ({ nombre: 'J' + (i + 1), personajeId: p })), misionId: 'farmacia', semilla: 42, opciones: { mapa: 'grande' } });
+  const n = Object.keys(G.casillas).length; assert.ok(n >= 230 && n <= 290, 'casillas ' + n); assert.equal(G.entradas.length, 8); assert.equal(G.rondasMax, 13);
+  const tipos = {}; for (const c of Object.values(G.casillas)) tipos[c.tipo] = (tipos[c.tipo] || 0) + 1; assert.ok(tipos.farmacia >= 2 && tipos.gasolinera >= 3 && tipos.taller >= 2);
+  for (const m of ['sin_gota', 'deposito', 'protocolo', 'suministros']) { const H = R.nuevaPartida({ jugadores: seis.slice(0, 4).map((p, i) => ({ nombre: 'J' + (i + 1), personajeId: p })), misionId: m, semilla: 7, opciones: { mapa: 'grande' } }); const M = (H.especiales && Object.keys(H.especiales).length) || Object.values(H.casillas).some(c => c.marca); assert.ok(M, m); }
+});

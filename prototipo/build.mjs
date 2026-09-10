@@ -1,8 +1,9 @@
 // Empaqueta datos + reglas + interfaz en un único HTML.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 const limpiar = s => s.split('\n').filter(l => !/^import\s/.test(l)).join('\n').replace(/^export\s+/gm, '');
-const js = ['datos', 'reglas', 'red', 'ui'].map(n => `/* ---- ${n}.js ---- */\n` + limpiar(readFileSync(new URL(`./src/${n}.js`, import.meta.url), 'utf8'))).join('\n');
-let html = readFileSync(new URL('./plantilla.html', import.meta.url), 'utf8').replace('/*__SCRIPT__*/', () => js);
+const js = ['datos', 'reglas', 'tablero3d', 'red', 'ui'].map(n => `/* ---- ${n}.js ---- */\n` + limpiar(readFileSync(new URL(`./src/${n}.js`, import.meta.url), 'utf8'))).join('\n');
+const three = readFileSync(new URL('./vendor/three.min.js', import.meta.url), 'utf8');
+let html = readFileSync(new URL('./plantilla.html', import.meta.url), 'utf8').replace('/*__THREE__*/', () => three).replace('/*__SCRIPT__*/', () => js);
 // el modal usa `hidden` en #modal-fondo pero el código alterna #modal: unificamos
 html = html.replace('<div id="modal-fondo" hidden><div id="modal" class="modal" role="dialog">', '<div id="modal-fondo"><div id="modal" class="modal" role="dialog" hidden>');
 mkdirSync(new URL('./dist/', import.meta.url), { recursive: true });

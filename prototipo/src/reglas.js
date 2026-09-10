@@ -39,12 +39,12 @@ export const reglaHC = G => ['hardcore', 'ambos'].includes(mision(G).contagio);
 
 /* ---------- creación de partida ---------- */
 export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
-  const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
+  const G = { version: 2, opciones: { hardcoreTardio: !!opciones.hardcoreTardio, mapa: opciones.mapa === 'grande' ? 'grande' : 'medio' }, semilla: semilla | 0 || 1, ronda: 1, fase: 'turno', log: [], avisos: [], misionId, ruido: 0, fin: null,
     jugadores: [], casillas: {}, zombis: {}, sigZombi: 1, sigCarta: 1, mazoObjetos: [], descartes: [], mazoHordas: [], mazoEventos: [],
     recetasConocidas: [...new Set([...Object.keys(RECETAS).filter(r => RECETAS[r].inicial), ...({ cuarentena: ['barricada'], convoy: ['coche_dep'], emisora: ['senuelo'] }[misionId] || [])])], almacen: { comida: 0, antibioticos: 0, bidon: 0, semillas: 0, suministro: 0, muestras: 0 }, nivelZombi: 0,
     niebla: false, banderas: {}, entradas: [], especiales: {}, losetasBorde: [], barricadas: [], enlaces: [], progreso: 0, orden: [], turnoIdx: 0, turno: null, zturno: null, decision: null, stats: {} };
   const esc = escalado(jugadores.length); G.escalado = esc; G.ruido = esc.ruidoInicial;
-  const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length);
+  const M = MISIONES[misionId]; G.cantidad = cantidadObjetivo(M, jugadores.length); G.radio = G.opciones.mapa === 'grande' ? PARAMS.radioMapaGrande : PARAMS.radioMapa; G.rondasMax = M.rondas + (G.radio >= 8 ? PARAMS.rondasExtraMapaGrande : 0);
   jugadores.forEach((j, i) => {
     const p = PERSONAJES[j.personajeId];
     const jug = { id: i, nombre: j.nombre, personajeId: j.personajeId, pos: '0,0', vida: p.vida, vidaMax: p.vida, panico: 0, mordido: null, estado: 'vivo',
@@ -67,9 +67,9 @@ export function nuevaPartida({ jugadores, misionId, semilla, opciones = {} }) {
 export function carta(G, id) { const o = OBJETOS[id]; const c = { uid: G.sigCarta++, id }; if (o.durabilidad) c.durab = o.durabilidad; if (o.usos) c.usos = o.usos; if (o.gasMax) c.gas = o.gasMax; return c; }
 
 export function generarTablero(G, M) {
-  const R = PARAMS.radioMapa; const C = G.casillas;
+  const R = G.radio || PARAMS.radioMapa; const C = G.casillas; const lim1 = R === 6 ? 9.2 : R * 1.5333, lim2 = R === 6 ? 12.6 : R * 2.1, radEntradas = R === 6 ? 11 : R * 1.8333;
   for (let q = -R; q <= R; q++) for (let r = Math.max(-R, -q - R); r <= Math.min(R, -q + R); r++) {
-    const [px, py] = pixel(key(q, r)); if (Math.max(Math.abs(px), Math.abs(py)) > 9.2 || Math.abs(px) + Math.abs(py) > 12.6) continue;
+    const [px, py] = pixel(key(q, r)); if (Math.max(Math.abs(px), Math.abs(py)) > lim1 || Math.abs(px) + Math.abs(py) > lim2) continue;
     C[key(q, r)] = { k: key(q, r), q, r, tipo: 'calle', loseta: null, revelada: false, fuego: 0, senuelo: 0, saqueos: 0, objetos: [] };
   }
   for (const c of Object.values(C)) { c.loseta = centroLoseta(c.k); if (!C[c.loseta]) c.loseta = c.k; }
@@ -79,15 +79,15 @@ export function generarTablero(G, M) {
   const inicial = new Set(['0,0', '3,-1', '1,2', '-2,3', '-3,1', '-1,-2', '2,-3']);
   for (const c of Object.values(C)) if (inicial.has(c.loseta)) { c.revelada = true; if (c.tipo === 'gasolinera' || c.tipo === 'farmacia') c.tipo = 'edificio'; }
   const usadas = new Set();
-  for (let k = 0; k < 8; k++) { const ang = k * Math.PI / 4; let mejor = null, md = 1e9; for (const c of borde) { const [px, py] = pixel(c.k); const d = Math.hypot(px - 11 * Math.cos(ang), py - 11 * Math.sin(ang)); if (d < md && !usadas.has(c.k)) { md = d; mejor = c; } } mejor.tipo = 'entrada'; usadas.add(mejor.k); G.entradas.push(mejor.k); }
+  for (let k = 0; k < 8; k++) { const ang = k * Math.PI / 4; let mejor = null, md = 1e9; for (const c of borde) { const [px, py] = pixel(c.k); const d = Math.hypot(px - radEntradas * Math.cos(ang), py - radEntradas * Math.sin(ang)); if (d < md && !usadas.has(c.k)) { md = d; mejor = c; } } mejor.tipo = 'entrada'; usadas.add(mejor.k); G.entradas.push(mejor.k); }
   G.losetasBorde = [...new Set(G.entradas.map(k => C[k].loseta))];
   const ocultas = () => Object.values(C).filter(c => !c.revelada && c.tipo !== 'entrada');
   const forzar = (tipo, n) => { let hay = Object.values(C).filter(c => c.tipo === tipo).length; const cand = barajar(G, ocultas().filter(c => ['calle', 'edificio', 'bosque'].includes(c.tipo))); while (hay < n && cand.length) { cand.pop().tipo = tipo; hay++; } };
-  if (M.farmacias) { for (const c of Object.values(C)) if (c.tipo === 'farmacia') c.tipo = 'edificio'; const top = ocultas().filter(c => c.r <= -4), bot = ocultas().filter(c => c.r >= 4); elegir(G, top).tipo = 'farmacia'; elegir(G, bot).tipo = 'farmacia'; }
+  if (M.farmacias) { for (const c of Object.values(C)) if (c.tipo === 'farmacia') c.tipo = 'edificio'; const top = ocultas().filter(c => c.r <= -(R - 2)), bot = ocultas().filter(c => c.r >= R - 2); elegir(G, top).tipo = 'farmacia'; elegir(G, bot).tipo = 'farmacia'; }
   forzar('farmacia', 2); forzar('gasolinera', M.objetivo === 'deposito' || M.objetivo === 'convoy' || M.objetivo === 'granja' ? 4 : 3); forzar('taller', 2);
   const revelarLosetaDe = k => { for (const c of Object.values(C)) if (c.loseta === C[k].loseta) c.revelada = true; };
   if (M.especial === 'helipuerto' || M.especial === 'torre' || M.especial === 'laboratorio') { const cand = borde.filter(c => !c.revelada && c.tipo !== 'entrada'); const h = elegir(G, cand); h.tipo = M.especial; G.especiales[M.especial] = h.k; revelarLosetaDe(h.k); }
-  if (M.especial === 'generador') { const norte = Object.values(C).filter(c => !c.revelada).sort((a, b) => dist(a.k, '0,-5') - dist(b.k, '0,-5'))[0]; norte.tipo = 'generador'; G.especiales.generador = norte.k; revelarLosetaDe(norte.k); }
+  if (M.especial === 'generador') { const norte = Object.values(C).filter(c => !c.revelada).sort((a, b) => dist(a.k, `0,-${R - 1}`) - dist(b.k, `0,-${R - 1}`))[0]; norte.tipo = 'generador'; G.especiales.generador = norte.k; revelarLosetaDe(norte.k); }
   if (M.zombisGarantizados) { const cand = barajar(G, Object.values(C).filter(c => !c.revelada && c.tipo !== 'entrada' && !vecinos(c.k).some(v => !C[v]))); for (const [tipo, n] of Object.entries(M.zombisGarantizados)) for (let i = 0; i < n && cand.length; i++) ponerZombi(G, tipo, 1, cand.pop().k); }
   if (M.suministros) { const cand = barajar(G, borde.filter(c => !c.revelada && c.tipo !== 'entrada')); const porLoseta = new Set(); let n = 0; for (const c of cand) { if (porLoseta.has(c.loseta)) continue; porLoseta.add(c.loseta); c.objetos.push('suministro'); c.marca = 'suministro'; if (++n >= M.suministros) break; } }
 }
@@ -504,7 +504,7 @@ export function comprobarFin(G, finRonda = false) {
     if (M.objetivo === 'protocolo' && G.almacen.muestras >= 3) G.fin = { resultado: 'victoria', motivo: 'Las tres muestras llegan al laboratorio. El protocolo Z-2099 se activa.' };
     if (M.objetivo === 'torre' && G.progreso >= G.cantidad) G.fin = { resultado: 'victoria', motivo: 'La emisora transmite dos noches seguidas. Alguien responderá.' };
     if (M.objetivo === 'todos_helipuerto') { const v = vivos(G); if (v.length && v.every(j => j.pos === G.especiales.helipuerto && j.estado === 'vivo')) G.fin = { resultado: 'victoria', motivo: 'Todo el equipo despega sin una gota de sangre infectada.' }; }
-    if (!G.fin && G.ronda >= M.rondas) {
+    if (!G.fin && G.ronda >= G.rondasMax) {
       if (M.objetivo === 'sobrevivir') { const cuenta = M.enRefugio ? vivos(G).filter(j => dist(j.pos, '0,0') <= (M.enRefugio === true ? 0 : M.enRefugio) && j.estado === 'vivo').length : enPie; G.fin = cuenta >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: `${cuenta} de ${N} responden a la última llamada desde el refugio.` } : { resultado: 'derrota', motivo: `Solo ${cuenta} de ${N} estaban en pie dentro del refugio cuando llegó la última llamada.` }; }
       else if (M.objetivo === 'granja') G.fin = G.almacen.semillas >= 1 && G.almacen.bidon >= G.cantidad && enPie >= Math.ceil(N / 2) ? { resultado: 'victoria', motivo: 'Semillas, gasolina y gente suficiente: la granja tiene futuro.' } : { resultado: 'derrota', motivo: `La granja no arranca (semillas ${G.almacen.semillas}, bidones ${G.almacen.bidon}, en pie ${enPie}).` };
       else G.fin = { resultado: 'derrota', motivo: 'Se agotaron las rondas.' };

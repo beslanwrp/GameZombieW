@@ -55,9 +55,10 @@ function pintarSala(v) {
   if (v.anfitrion) {
     const mis = el('select', {}, ...Object.entries(MISIONES).map(([id, m]) => el('option', { value: id, selected: id === v.misionId }, `${m.nombre} · ${m.etiquetas.join(' ')}`)));
     const hc = el('select', {}, el('option', { value: '', selected: !v.opciones.hardcoreTardio }, 'Hardcore: conversión al terminar la ronda'), el('option', { value: '1', selected: v.opciones.hardcoreTardio }, 'Hardcore: conversión en la noche siguiente'));
-    const cfg = () => redApi(`/api/sala/${v.codigo}/configurar`, { token: RED.token, misionId: mis.value, opciones: { hardcoreTardio: hc.value === '1' } });
-    mis.addEventListener('change', cfg); hc.addEventListener('change', cfg);
-    c.append(el('label', {}, 'Cambiar misión', mis), el('label', {}, 'Variante hardcore', hc), el('button', { class: 'primario ancho', disabled: v.asientos.length < 2, onclick: async () => { const r = await redApi(`/api/sala/${v.codigo}/empezar`, { token: RED.token }); if (!r.ok) toast(r.motivo); } }, v.asientos.length < 2 ? 'Esperando a otro jugador…' : 'Repartir personajes y empezar'));
+    const mapa = el('select', {}, el('option', { value: 'grande', selected: v.opciones.mapa !== 'medio' }, 'Mapa grande (unas 250 casillas, +3 rondas)'), el('option', { value: 'medio', selected: v.opciones.mapa === 'medio' }, 'Mapa medio (unas 120 casillas)'));
+    const cfg = () => redApi(`/api/sala/${v.codigo}/configurar`, { token: RED.token, misionId: mis.value, opciones: { hardcoreTardio: hc.value === '1', mapa: mapa.value } });
+    mis.addEventListener('change', cfg); hc.addEventListener('change', cfg); mapa.addEventListener('change', cfg);
+    c.append(el('label', {}, 'Cambiar misión', mis), el('label', {}, 'Variante hardcore', hc), el('label', {}, 'Tamaño del mapa', mapa), el('button', { class: 'primario ancho', disabled: v.asientos.length < 2, onclick: async () => { const r = await redApi(`/api/sala/${v.codigo}/empezar`, { token: RED.token }); if (!r.ok) toast(r.motivo); } }, v.asientos.length < 2 ? 'Esperando a otro jugador…' : 'Repartir personajes y empezar'));
   } else if (RED.asiento >= 0) c.append(el('p', { class: 'muted' }, 'Esperando a que el anfitrión empiece.'));
   else c.append(el('p', { class: 'muted' }, 'Esta pantalla mostrará el tablero cuando empiece la partida.'));
   c.append(el('button', { class: 'mini', onclick: () => { redOlvidar(); inicio(); } }, 'Salir de la sala'));

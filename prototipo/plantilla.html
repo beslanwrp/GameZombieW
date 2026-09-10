@@ -1,11 +1,13 @@
 <title>Z-2099 Prototipo</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Special+Elite&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{--bg:#141614;--surface:#1d201c;--surface2:#262a25;--ink:#e6e3da;--muted:#9aa096;--line:#353a34;--accent:#c9553d;--olive:#9db060;--hazard:#e0b43a;--focus:#8fb3ec;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4;overscroll-behavior:none;}
+.maquina{font-family:"Special Elite","Courier New",monospace}
 button{font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);padding:9px 12px;cursor:pointer;border-radius:3px;}
 button:disabled{opacity:.4;cursor:default}
 button.primario{background:var(--accent);border-color:var(--accent);color:#1a0c09;font-weight:600}
@@ -27,35 +29,42 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
 #p-pasar .cont{text-align:center;padding-top:14vh}
 #pasar-nombre{font-family:"Big Shoulders Display",Impact,sans-serif;font-size:64px;line-height:1;text-transform:uppercase;margin:10px 0 24px}
 /* reparto */
-.carta-personaje{display:block;width:100%;text-align:left;background:var(--surface);border-left:5px solid var(--c);margin-top:12px;padding:14px}
-.cp-nombre{font-weight:600;font-size:19px}.cp-nombre span{color:var(--muted);font-weight:400;margin-left:8px}
-.cp-stats{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin:4px 0 8px}
-.cp-h{font-size:14px;margin-top:4px}.cp-h.contra b{color:var(--accent)}
+.carta-personaje{display:block;width:100%;text-align:left;background:#e9e2cf;color:#2a2622;border:0;border-left:6px solid var(--c);margin-top:14px;padding:14px 16px;position:relative;box-shadow:0 10px 24px rgba(0,0,0,.55);background-image:linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:100% 26px;transform:rotate(-.6deg)}.carta-personaje:nth-child(odd){transform:rotate(.7deg)}
+.carta-personaje::after{content:"Z-2099";position:absolute;right:12px;top:10px;font-family:"Special Elite","Courier New",monospace;font-size:11px;letter-spacing:.14em;color:#8a2a1e;border:2px solid #8a2a1e;padding:2px 8px;transform:rotate(-8deg);opacity:.85}
+.cp-nombre{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:800;font-size:30px;line-height:1;text-transform:uppercase}.cp-nombre span{display:block;font-family:"Special Elite","Courier New",monospace;font-size:12px;color:#6a5a48;text-transform:none;margin-top:2px}
+.cp-stats{font-family:"Special Elite","Courier New",monospace;font-size:12px;color:#6a5a48;margin:8px 0 8px;border-top:1px solid #b9ae95;border-bottom:1px solid #b9ae95;padding:6px 0}
+.cp-h{font-family:"Special Elite","Courier New",monospace;font-size:13px;margin-top:5px;line-height:1.4}.cp-h b{color:#5f6e36;font-weight:400}.cp-h.contra b{color:#8a2a1e}
 /* juego */
 #p-juego,#p-zombi{height:100%;height:100dvh;overflow:hidden}
-.cabecera{flex:none;display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.cabecera{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.cabecera .mision b{font-size:15px}
 .cabecera .mision{flex:1;min-width:160px}.cabecera .mision span{color:var(--muted)}
 .ruido{display:flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:12px}
 .ruido .lab{color:var(--muted)} .ruido-bar{display:flex;gap:2px}.ruido-bar i{width:9px;height:12px;background:var(--surface2);border:1px solid var(--line)}.ruido-bar i.on{background:var(--hazard)}.ruido.alto .ruido-bar i.on{background:var(--accent)}
 .tablero{flex:1;position:relative;min-height:200px;background:#101210}
 .tablero canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.tablero .encuadrar{position:absolute;right:8px;top:8px;font-size:12px;padding:5px 8px;background:rgba(20,22,20,.8)}
+.tablero .hud3d{position:absolute;right:8px;top:8px;display:flex;gap:6px;z-index:2}.tablero .hud3d button{font-size:12px;padding:5px 8px;background:rgba(20,22,20,.8)}
+.tablero .lienzo3d{position:absolute;inset:0;display:block;touch-action:none}
+.etiquetas3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}.etiquetas3d .et{position:absolute;left:0;top:0;margin:-30px 0 0 -55px;width:110px;text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.04em;color:#e6e3da;background:rgba(20,22,20,.72);border-left:3px solid #9aa096;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.etiquetas3d .et.zom{border-left-color:#c9553d;color:#e0b4a8}
 .panel{flex:none;max-height:46vh;overflow:auto;padding:10px 12px 6px;background:var(--surface);border-top:3px solid var(--c,var(--line))}
+.panel .quien b{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.01em}
 #p-zombi .panel{border-top-color:#8fa86a}
 .quien{font-size:15px}.quien b{font-size:17px}.quien .vida{margin-left:8px;color:var(--accent);letter-spacing:1px}
 .estado{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
 .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:2px 6px;border:1px solid var(--line);color:var(--muted)}.tag.peligro{border-color:var(--accent);color:var(--accent)}.tag.bien{border-color:var(--olive);color:var(--olive)}
 .fila{display:flex;align-items:center;gap:12px;margin:6px 0}
-.dados{display:flex;gap:6px}.dado{width:40px;height:40px;font-size:20px;padding:0;background:#e6e3da;color:#151714;border:2px solid #b9b6ab;border-radius:6px;font-weight:700}
+.dados{display:flex;gap:6px}.dado{width:44px;height:44px;font-size:22px;padding:0;background:#e6e3da;color:#151714;border:0;border-radius:6px;font-weight:700;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 4px rgba(0,0,0,.5)}
 .dado.ruido{background:var(--hazard)}.dado.mordisco{background:var(--accent);color:#fff}.dado.doble{background:var(--olive)}
 .contadores{display:flex;gap:14px;font-size:14px;color:var(--muted)}.contadores b{color:var(--ink);font-size:18px}
 .acciones{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.acciones button{font-size:14px;padding:8px 10px}
 .ayuda{margin:4px 0 0}
 .mano{flex:none;display:flex;gap:8px;overflow-x:auto;padding:8px 12px 10px;background:var(--bg);border-top:1px solid var(--line);align-items:stretch}
 .mano .peso{flex:none;writing-mode:vertical-rl;transform:rotate(180deg);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);text-align:center}
-.carta{flex:none;width:118px;text-align:left;padding:8px;background:#e9e4d6;color:#1a1a18;border:1px solid #b9b6ab;border-radius:4px;display:flex;flex-direction:column;gap:2px;min-height:64px}
-.carta b{font-size:13px;line-height:1.2}.carta span{font-size:11px;color:#5a5a55}
-.carta.arma{background:#e6d3c3}.carta.consumible{background:#d8e2cc}.carta.vehiculo,.carta.combustible{background:#d9d9e6}.carta.material{background:#e9e4d6}.carta.otro{background:#e6dcc0}
+.carta{flex:none;width:104px;text-align:left;padding:6px 6px 8px;background:#f1ece0;color:#2a2622;border:0;border-radius:2px;display:flex;flex-direction:column;gap:3px;box-shadow:0 4px 10px rgba(0,0,0,.45);transform:rotate(-1.5deg)}.carta:nth-child(odd){transform:rotate(1.2deg)}
+.carta::before{content:"";display:block;height:46px;background:var(--foto,linear-gradient(160deg,#5b5a6a,#2a2a30));position:relative}
+.carta b{font-family:"Special Elite","Courier New",monospace;font-size:12px;line-height:1.15;font-weight:400}.carta span{font-family:"Special Elite","Courier New",monospace;font-size:9px;color:#6a5a48;line-height:1.2}
+.carta.arma{--foto:linear-gradient(160deg,#3a3d3a,#1f2220)}.carta.consumible{--foto:linear-gradient(160deg,#6e4a4a,#2f1f1f)}.carta.vehiculo,.carta.combustible{--foto:linear-gradient(160deg,#7a5a2e,#3a2a14)}.carta.material{--foto:linear-gradient(160deg,#5b5a6a,#2a2a30)}.carta.otro{--foto:linear-gradient(160deg,#4a5a3a,#1f2a18)}
+.mano{background:#111311}
 /* modal */
 #modal-fondo:has(> #modal[hidden]){display:none}
 #modal-fondo{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:20}
@@ -96,21 +105,21 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
 
 <div id="p-juego" class="pantalla" hidden>
   <div class="cabecera"></div>
-  <div class="tablero"><canvas></canvas><button class="encuadrar">Ver todo</button></div>
+  <div class="tablero"><canvas></canvas><div class="hud3d"><button class="encuadrar">Ver todo</button><button class="mificha">Mi ficha</button><button class="vistamesa">Vista de mesa</button></div></div>
   <div class="panel"></div>
   <div class="mano"></div>
 </div>
 
 <div id="p-zombi" class="pantalla" hidden>
   <div class="cabecera"></div>
-  <div class="tablero"><canvas></canvas><button class="encuadrar">Ver todo</button></div>
+  <div class="tablero"><canvas></canvas><div class="hud3d"><button class="encuadrar">Ver todo</button><button class="mificha">Mi ficha</button><button class="vistamesa">Vista de mesa</button></div></div>
   <div class="panel"></div>
   <div class="mano"></div>
 </div>
 
 <div id="p-espera" class="pantalla" hidden>
   <div class="cabecera"></div>
-  <div class="tablero"><canvas></canvas><button class="encuadrar">Ver todo</button></div>
+  <div class="tablero"><canvas></canvas><div class="hud3d"><button class="encuadrar">Ver todo</button><button class="mificha">Mi ficha</button><button class="vistamesa">Vista de mesa</button></div></div>
   <div class="panel"></div>
   <div class="mano"></div>
 </div>
@@ -121,6 +130,9 @@ h2{font-family:"Big Shoulders Display",Impact,sans-serif;font-weight:700;font-si
 
 <div id="modal-fondo" hidden><div id="modal" class="modal" role="dialog"><h3 id="modal-titulo"></h3><div id="modal-cuerpo"></div><div id="modal-botones"></div></div></div>
 <div id="toast" hidden></div>
+<script>
+/*__THREE__*/
+</script>
 <script>
 /*__SCRIPT__*/
 </script>
